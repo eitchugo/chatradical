@@ -213,6 +213,9 @@ class ChatRadicalServer
                 else
                     cliente.puts "RCV_JOINCHN ERR Nome de sala invalido"
                 end
+            elsif linha =~ /^CMD_INFOCHN( |$)/i
+                sala = usuario.sala
+                cliente.puts "RCV_INFOCHN OK #{@salas[sala].nome} #{@salas[sala].descricao}"
             elsif linha =~ /^CMD_WHOCHN( |$)/i
                 sala = usuario.sala
                 cliente.write "RCV_WHOCHN OK "

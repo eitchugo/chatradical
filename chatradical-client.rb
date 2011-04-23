@@ -98,6 +98,11 @@ class ChatRadicalClient
                     puts "client>    - #{membro}"
                 end
             end
+        elsif linha =~ /^RCV_INFOCHN OK /
+            match = /^RCV_INFOCHN OK ([a-zA-Z0-9]{1,24}) (.+)/.match linha
+            if match
+                puts "client> Você está no canal #{match[1]} - #{match[2]}"
+            end
         elsif linha =~ /^RCV_NICK /
             match = /^RCV_NICK (ERR (.*)|OK)/.match linha
             if match
@@ -139,6 +144,8 @@ class ChatRadicalClient
             if match
                 EntrarSala(match[1], match[3])
             end
+        elsif linha =~ /^\/info( |$)/i
+            InfoSala()
         elsif linha =~ /^\/nick /i
             match = /^\/nick ([a-zA-Z0-9]{1,24})$/.match linha
             if match
@@ -171,6 +178,10 @@ class ChatRadicalClient
 
     def ListarMembros
         @server.puts "CMD_WHOCHN"
+    end
+
+    def InfoSala
+        @server.puts "CMD_INFOCHN"
     end
 
     def EntrarSala(nome, descricao)

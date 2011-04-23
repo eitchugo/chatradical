@@ -22,6 +22,7 @@ chmod 755 chatradical-cliente.rb
    * /list - Lista os canais
    * /join <canal> [descricao] - Entra no canal, se nao existir cria um novo
    * /who - Mostra quem tá no canal atual
+   * /info - Mostra o nome do canal atual e sua descricao
    * /log [n] - Mostra n número de linhas de histórico do canal (padrão 30)
    * /msg <nick> <msg> - Manda uma mensagem privada para alguém
    * /nick <novo_nick> - Muda o seu nick
