@@ -73,13 +73,17 @@ class ChatRadicalClient
     end
 
     def RecebimentoDoServer(linha)
-        if linha =~ /^RCV_JOINCHN OK /
-            match = /^RCV_JOINCHN OK ([\w]+)$/.match linha
+        if linha =~ /^RCV_JOINCHN /
+            match = /^RCV_JOINCHN (ERR (.*)|OK ([\w]+))$/.match linha
             if match
-                puts "client> Mudando para a sala '#{match[1]}'"
+                if match[1] =~ /^ERR /
+                    puts "error> #{match[2]}"
+                else
+                    puts "client> Mudando para a sala '#{match[3]}'"
+                end
             end
         elsif linha =~ /^RCV_LISTCHN OK /
-            match = /^RCV_LISTCHN OK ([a-zA-Z0-9\|]+)/.match linha
+            match = /^RCV_LISTCHN OK (.+)/.match linha
             if match
                 puts "client> Salas disponíveis:"
                 match[1].split('|').each do |sala|
@@ -131,9 +135,9 @@ class ChatRadicalClient
         elsif linha =~ /^\/who( |$)/i
             ListarMembros()
         elsif linha =~ /^\/join /i
-            match = /^\/join ([\w]+)$/.match linha
+            match = /^\/join ([a-zA-Z0-9]{1,24})( (.+))?/.match linha
             if match
-                EntrarSala(match[1])
+                EntrarSala(match[1], match[3])
             end
         elsif linha =~ /^\/nick /i
             match = /^\/nick ([a-zA-Z0-9]{1,24})$/.match linha
@@ -169,8 +173,8 @@ class ChatRadicalClient
         @server.puts "CMD_WHOCHN"
     end
 
-    def EntrarSala(nome)
-        @server.puts "CMD_JOINCHN #{nome}"
+    def EntrarSala(nome, descricao)
+        @server.puts "CMD_JOINCHN #{nome} #{descricao}"
     end
 
     def VerLog(tail=nil)

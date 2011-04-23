@@ -85,7 +85,7 @@ class ChatRadicalServer
         begin
             puts "server> Criando salas padrões..."
             ["default", "Linux", "Ruby", "FIAP"].each do |nome|
-                NovaSala(nome)
+                NovaSala(nome, nome)
             end
             puts "server> Salas criadas."
         rescue
@@ -188,24 +188,30 @@ class ChatRadicalServer
                 end
                 cliente.puts
             elsif linha =~ /^CMD_JOINCHN /i
-                match = /^CMD_JOINCHN ([a-zA-Z0-9]{1,24})/i.match linha
+                match = /^CMD_JOINCHN ([a-zA-Z0-9]{1,24})( (.+))?/i.match linha
                 if match
-                    sala_atual = usuario.sala
-                    if sala_atual
-                        msg = "#{usuario.nick} saiu da sala"
-                        ChatNotice(usuario, msg)
-                        @salas[sala_atual].RemoverMembro(cliente, usuario.nick)
+                    sala = match[1]
+                    if match[2]
+                        descricao = match[3]
                     end
 
-                    sala = match[1]
-                    NovaSala(sala)
+                    unless NovaSala(sala, descricao)
+                        cliente.puts "RCV_JOINCHN ERR Necessário uma descrição para criar uma sala."
+                    else
+                        sala_atual = usuario.sala
+                        if sala_atual
+                            msg = "#{usuario.nick} saiu da sala"
+                            ChatNotice(usuario, msg)
+                            @salas[sala_atual].RemoverMembro(cliente, usuario.nick)
+                        end
 
-                    @salas[sala].AdicionarMembro(cliente, usuario.nick)
-                    cliente.puts usuario.EntrarSala(sala)
-                    msg = "#{usuario.nick} entrou na sala '#{sala}'"
-                    ChatNotice(usuario, msg)
+                        @salas[sala].AdicionarMembro(cliente, usuario.nick)
+                        cliente.puts usuario.EntrarSala(sala)
+                        msg = "#{usuario.nick} entrou na sala '#{sala}'"
+                        ChatNotice(usuario, msg)
+                    end
                 else
-                    cliente.puts "ERR_CMD Nome de sala invalido"
+                    cliente.puts "RCV_JOINCHN ERR Nome de sala invalido"
                 end
             elsif linha =~ /^CMD_WHOCHN( |$)/i
                 sala = usuario.sala
@@ -279,17 +285,36 @@ class ChatRadicalServer
         return false
     end
 
-    def NovaSala(nome)
+    def pegar_descricao_de_sala_por_nome(nome)
+        @salas.each_value do |sala|
+            if (sala.nome == nome)
+                return sala.descricao
+            end
+        end
+
+        return false
+    end
+
+    def NovaSala(nome, descricao)
         unless @salas[nome]
-            @salas[nome] = Sala.new(nome, nil)
-            puts "server> Nova sala criada: #{nome}"
+            if descricao == nil
+                return false
+            end
+
+            @salas[nome] = Sala.new(nome, descricao)
+            puts "server> Nova sala criada: #{nome} - #{descricao}"
+
+            return true
         end
     end
 
     def ListarSalas()
         lista = Array.new()
-        @salas.each_key do |sala|
-            lista = lista + [sala]
+        @salas.each_value do |sala|
+            nome = sala.nome
+            descricao = sala.descricao
+            
+            lista = lista + ["#{nome} - #{descricao}"]
         end
         return lista.sort
     end
