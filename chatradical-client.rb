@@ -103,6 +103,15 @@ class ChatRadicalClient
                     puts "client> Nick mudado."
                 end
             end
+         elsif linha =~ /^RCV_PVT /
+            match = /^RCV_PVT (ERR (.*)|OK)/.match linha
+            if match
+                if match[1] =~ /^ERR /
+                    puts "error> #{match[2]}"
+                else
+                    puts "client> Mensagem enviada."
+                end
+            end
         elsif linha =~ /^RCV_CHATLOG /
             match = /^RCV_CHATLOG (.+)/.match linha
             if match
@@ -130,6 +139,11 @@ class ChatRadicalClient
             match = /^\/nick ([a-zA-Z0-9]{1,24})$/.match linha
             if match
                 MudarNick(match[1])
+            end
+        elsif linha =~ /^\/msg /i
+            match = /^\/msg ([a-zA-Z0-9]{1,24}) (.+)/.match linha
+            if match
+                EnviarPVT(match[1], match[2])
             end
         elsif linha =~ /^\/log( |$)/i
             match = /^\/log ([0-9]{1,2})/.match linha
@@ -165,6 +179,10 @@ class ChatRadicalClient
 
     def MudarNick(nick)
         @server.puts "CMD_NICK #{nick}"
+    end
+
+    def EnviarPVT(nick, msg)
+        @server.puts "CMD_PVT #{nick} #{msg}"
     end
 
     def Desconectar

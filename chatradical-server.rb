@@ -3,25 +3,19 @@
 require 'socket'
 
 class Usuario
-    attr_reader :id, :timestamp, :sala
-    attr_accessor :indice, :nick, :nome
+    attr_reader :id, :sala, :descriptor
+    attr_accessor :nick, :nome
 
     def initialize(id, nick, nome, descriptor)
         @id = id
         @nick = nick
         @nome = nome
         @descriptor = descriptor
-        TimeStamp()
-    end
-
-    def TimeStamp
-        @timestamp = Time.now
     end
 
     def EntrarSala(nome)
         @sala = nome
-        @indice = 0
-        return "RCV_JOINCHN OK " + nome
+        return "RCV_JOINCHN OK #{nome}"
     end
 
 end
@@ -102,7 +96,7 @@ class ChatRadicalServer
             loop do
                 Thread.start(server.accept) do |cliente|
                     @connid += 1
-                    connid = @connid          
+                    connid = @connid
                     port = cliente.peeraddr[1]
                     host = cliente.peeraddr[2]
                     addr = cliente.peeraddr[3]
@@ -138,15 +132,14 @@ class ChatRadicalServer
             nick = connmatch[1]
             nome = connmatch[2]
 
-            if @nicks[connid]
-                cliente.puts "ERR_CONN Você já está conectado!"
-            elsif @nicks.has_value?(nick)
+            if pegar_usuario_por_nick(nick)
                 cliente.puts "ERR_CONN Nick já em uso! Tente outro"
             else
-                @nicks[connid] = nick
+                usuario = Usuario.new(connid, nick, nome, cliente)
+
+                @nicks[connid] = usuario
                 @descriptors.push(cliente)
 
-                usuario = Usuario.new(connid, nick, nome, cliente)
                 cliente.puts "RCV_CONN OK #{connid}"
                 cliente.puts ClienteMotd()
                 cliente.puts "RCV_MOTD OK"
@@ -234,12 +227,17 @@ class ChatRadicalServer
                 log.each do |linha_log|
                     cliente.puts "RCV_CHATLOG [LOG] #{linha_log}"
                 end
+            elsif linha =~ /^CMD_PVT /
+                match = /^CMD_PVT ([a-zA-Z0-9]{1,24}) (.+)/i.match linha
+                if match
+                    cliente.puts EnviarPVT(usuario, match[1], match[2])
+                end
             elsif linha =~ /^CMD_WHOAMI( |$)/i
                 cliente.puts "RCV_WHOAMI OK #{usuario.id} #{usuario.nick} #{usuario.nome} #{usuario.sala}"
             elsif linha =~ /^CMD_NICK /i
                 match = /^CMD_NICK ([a-zA-Z0-9]{1,24})/i.match linha
                 if match
-                    if @nicks.has_value?(match[1])
+                    if pegar_usuario_por_nick(match[1])
                         cliente.puts "RCV_NICK ERR Nick já em uso"
                     else
                         novo_nick = match[1]
@@ -269,6 +267,16 @@ class ChatRadicalServer
                 cliente.puts "ERR_CMD Comando Invalido"
             end
         end
+    end
+
+    def pegar_usuario_por_nick(nick)
+        @nicks.each_value do |usuario|
+            if usuario.nick == nick
+                return usuario
+            end
+        end
+
+        return false
     end
 
     def NovaSala(nome)
@@ -312,6 +320,18 @@ class ChatRadicalServer
         end
 
         return "RCV_CHAT OK"
+    end
+
+    def EnviarPVT(usuario, destino, msg)
+         destino = pegar_usuario_por_nick(destino)
+
+         if destino
+             msg = Time.now.strftime("[%H:%M:%S] ") + "PVT <#{usuario.nick}> #{msg}"
+             destino.descriptor.puts "RCV_CHATMSG #{msg}"
+             return "RCV_PVT OK"
+         else
+             return "RCV_PVT ERR Nick não existe!"
+         end
     end
 
 end
