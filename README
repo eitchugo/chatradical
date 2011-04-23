@@ -1,0 +1,41 @@
+= Instruções bem básicas (lénocs) =
+
+== Rodar o servidor ==
+
+chmod 755 chatradical-server.rb
+./chatradical-server.rb
+
+== Rodar o cliente ==
+
+chmod 755 chatradical-cliente.rb
+./chatradical-cliente.rb
+
+= Informações de Conexão =
+
+   * Antes de se conectar, pede-se o nick (apelido) e nome. Ambos 
+     so aceitam uma palavra de ate uns 24 caracteres (mudar)
+   * Não se aceita duas conexões com o mesmo nick, não insistir hehehe
+   * Quando conectado, já entra automaticamente na sala "default"
+
+= Comandos cheat-sheet =
+
+   * /list - Lista os canais
+   * /join <canal> [descricao] - Entra no canal, se nao existir cria um novo
+   * /who - Mostra quem tá no canal atual
+   * /log [n] - Mostra n número de linhas de histórico do canal (padrão 30)
+   * /msg <nick> <msg> - Manda uma mensagem privada para alguém
+   * /nick <novo_nick> - Muda o seu nick
+   * /quit - Sai do servidor
+
+= Considerações =
+
+Foi feito para lembrar o good'an'old IRC.
+
+No servidor eu usei Threads com IO bloqueado, enquanto que no cliente eu usei IO
+assíncrono não bloqueado. Como eu fui aprendendo agora Ruby enquanto fazia o
+server, comecei a pegar os macetes depois e deixei o servidor "mais mal-feito",
+mas é bom que fica a referência de como fazer os dois tipos.
+
+Ainda falta uma boa refatoração e organização do código, que tá uma bagunça.
+
+Cheers!
