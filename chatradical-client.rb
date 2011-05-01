@@ -56,16 +56,24 @@ class ChatRadicalClient
     end
 
     def Listener()
+
+        # Thread do input do usuario
+        Thread.new do
+           loop do
+               usercmd = STDIN.gets
+               UserCMD(usercmd)
+           end
+        end
+
+        # Infelizmente no Windows o select so atua em sockets, entao
+        # STDIN fica na thread anterior
         loop do
-            res = select([@server, STDIN], nil, nil, nil)
+            res = select([@server], nil, nil, nil)
             if res
                 for inp in res[0]
                     if inp == @server
                         linha = @server.readline.chomp
                         RecebimentoDoServer(linha)
-                    elsif inp == STDIN
-                        usercmd = STDIN.gets
-                        UserCMD(usercmd)
                     end
                 end
             end
