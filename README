@@ -1,42 +1,199 @@
-= Instruções bem básicas (lénocs) =
+= Instruções e Informações para o ChatRadical
 
-== Rodar o servidor ==
+Feito e testado na versão Ruby 1.8.5
 
-chmod 755 chatradical-server.rb
-./chatradical-server.rb
+== Rodar o servidor
 
-== Rodar o cliente ==
+chatradical-server.rb
+   - Abre um servidor de chat na porta 7000, escutando em todas interfaces
 
-chmod 755 chatradical-cliente.rb
-./chatradical-cliente.rb
+== Rodar o cliente
 
-= Informações de Conexão =
+chatradical-cliente.rb [servidor] [porta]
+   - Conecta-se no servidor de chat. Caso não seja especificado o servidor
+     e porta, usa-se os valores localhost e 7000 respectivamente.
+
+= Informações de Conexão
 
    * Antes de se conectar, pede-se o nick (apelido) e nome. Ambos 
-     so aceitam uma palavra de ate uns 24 caracteres (mudar)
-   * Não se aceita duas conexões com o mesmo nick, não insistir hehehe
-   * Quando conectado, já entra automaticamente na sala "default"
+     so aceitam uma palavra de ate 24 caracteres
+   * Não se aceita duas conexões com o mesmo nick, não insistir.
+   * Quando conectado, já entra automaticamente na sala "default".
 
-= Comandos cheat-sheet =
+= Comandos do cliente
 
-   * /list - Lista os canais
-   * /join <canal> [descricao] - Entra no canal, se nao existir cria um novo
-   * /who - Mostra quem tá no canal atual
-   * /info - Mostra o nome do canal atual e sua descricao
+   * /help - Esta lista de comandos
+   * /list - Lista as salas
+   * /join <sala> [descricao] - Entra na sala, se nao existir cria uma nova
+   * /who - Mostra quem está na sala atual
+   * /info - Mostra o nome da sala atual e sua descrição
    * /log [n] - Mostra n número de linhas de histórico do canal (padrão 30)
    * /msg <nick> <msg> - Manda uma mensagem privada para alguém
    * /nick <novo_nick> - Muda o seu nick
    * /quit - Sai do servidor
 
-= Considerações =
+= Documentação de desenvolvimento
+
+Uma documentação foi gerada através do código-fonte usando o RDoc, e se
+encontra no diretório docs/.
+
+= Considerações
 
 Foi feito para lembrar o good'an'old IRC.
 
-No servidor eu usei Threads com IO bloqueado, enquanto que no cliente eu usei IO
-assíncrono não bloqueado. Como eu fui aprendendo agora Ruby enquanto fazia o
-server, comecei a pegar os macetes depois e deixei o servidor "mais mal-feito",
-mas é bom que fica a referência de como fazer os dois tipos.
+No servidor eu usei Threads com IO bloqueado, enquanto que no cliente eu
+usei IO assíncrono não bloqueado. Ainda no cliente, para lidar com o STDIN, 
+utilizei threads pelo fato do Windows não aceitar a função select() para 
+lidar com o STDIN, apenas com sockets, então deixei misto.
 
-Ainda falta uma boa refatoração e organização do código, que tá uma bagunça.
+Deixei dessa forma então para, no exercício, ficar as duas formas.
 
-Cheers!
+= Protocolo
+
+O protocolo do servidor é simples e definido nesta parte.
+
+== Conexão
+
+Quando o cliente efetuar uma conexão, o servidor espera por um handshake
+para só então registrar o usuário no chat.
+
+=== CONN <nick> <nome>
+
+   Estabelece uma conexão com o servidor de chat.
+
+   <nick> - Letras e números de até 24 caracteres
+   <nome> - Letras e números de até 24 caracteres
+
+Retorna:
+
+   RCV_CONN ERR <mensagem>
+      Ocorreu um erro na tentativa de handshake. Possíveis causas podem ser:
+         * Sintaxe incorreta de protocolo
+         * Nick já em uso
+
+   RCV_CONN OK <id>
+      A conexão foi efetuada com sucesso e o usuário está registrado
+      registrado no chat. O <id> é o número de conexão que ele recebe
+      do servidor.
+
+      Em seguida, o servidor manda a mensagem de boas vindas ao cliente.
+
+   RCV_MOTD OK
+      A mensagem de boas vindas foi enviada completamente para o cliente
+      e a sessão é estabelecida.
+
+=== QUIT
+
+   Finaliza a conexão com o servidor de chat.
+
+== Comandos
+
+Mensagens de protocolo mandadas ao servidor para efetuar alguma ação.
+
+=== CMD_LISTCHN
+
+   Pergunta ao servidor quais as salas disponíveis para o chat
+
+Retorna:
+
+   RCV_LISTCHN ERR
+      Ocorreu um erro ao listar as salas disponíveis
+
+   RCV_LISTCHN OK <sala1|sala2|sala3|...>
+      O primeiro argumento contém uma lista das salas disponíveis no
+      servidor, separados por um 'pipe' (|). O cliente deve fazer o parse
+      para mostrar.
+
+=== CMD_WHOCHN
+
+   Pergunta ao servidor quais os membros da sala atual
+
+Retorna:
+
+   RCV_WHOCHN ERR <mensagem>
+      Ocorreu um erro ao listar os usuários da sala
+
+   RCV_WHOCHN OK <membro1|membro2|membro3|...>
+      O primeiro argumento contém uma lista dos membros da sala atual,
+      separados por um 'pipe' (|). O cliente deve fazer o parse para mostrar.
+
+=== CMD_JOINCHN <sala> [descricao]
+
+   Muda a sala que o cliente está. O cliente só pode ficar em apenas uma sala
+   por vez. Caso a sala não exista, o servidor cria uma nova, e neste caso o
+   parâmetro [descricao] se torna obrigatório.
+
+Retorna:
+
+   RCV_JOINCHN ERR <mensagem>
+      Ocorreu um erro ao tentar entrar na sala ou criá-la.
+
+   RCV_JOINCHN OK <sala>
+      O cliente foi mudado para a sala de nome '<sala>' com sucesso.
+
+=== CMD_INFOCHN
+
+   Mostra o nome e a descrição da sala atual
+
+Retorna:
+
+   CMD_INFOCHN ERR <mensagem>
+      Ocorreu um erro ao tentar mostrar as informações da sala.
+
+   CMD_INFOCHN OK <sala> <descricao>
+      <sala> - nome da sala
+      <descricao> - descrição da sala
+
+=== CMD_NICK <nick>
+
+   Muda o apelido (nick) do usuário atual.
+
+   <nick> - Letras e números de até 24 caracteres
+   
+Retorna:
+
+   RCV_NICK ERR <mensagem>
+      Ocorreu um erro ao tentar trocar o nick do usuário. Possíveis causas:
+         * Sintaxe do nick incorreta
+         * Nick já existe
+
+   RCV_NICK OK
+      O nick do cliente foi modificado com sucesso.
+
+=== CMD_PVT <nick> <mensagem>
+
+   Manda uma mensagem privada para alguém.
+
+   <nick> - apelido da pessoa para a mensagem ser enviada
+   <mensagem> - a mensagem em si
+
+Retorna:
+
+   RCV_PVT ERR <mensagem>
+      Ocorreu um erro ao enviar a mensagem.
+
+   RCV_PVT OK
+      A mensagem foi enviada com sucesso.
+
+=== CMD_CHATLOG [tail]
+
+   Pede o registro de conversa do canal atual.
+
+   [tail] - quantidade de últimas linhas (padrão é 30)
+
+Retorna:
+
+   RCV_CHATLOG ERR <mensagem>
+      Ocorreu um erro ao tentar acessar o registro de conversa.
+
+   RCV_CHATLOG OK
+      O cliente recebeu todos os registros pedidos.
+
+== Recebimento
+
+Mensagens que o servidor manda de forma independente para os clientes
+e que deve ser sempre escutada e tratada.
+
+=== RCV_CHATMSG <mensagem>
+
+   Uma mensagem chegou para o cliente e deve ser mostrada ao usuário.
