@@ -50,10 +50,9 @@ class Sala
     end
 
     # Adiciona um membro na sala.
-    def AdicionarMembro(membro, nick)
-        @membros.push(membro)
-        @nicks.push(nick)
-        @nicks = @nicks.sort()
+    def AdicionarMembro(cliente, usuario)
+        @membros.push(cliente)
+        @nicks.push(usuario)
     end
 
     # Remove um membro da sala.
