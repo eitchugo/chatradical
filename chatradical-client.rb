@@ -17,9 +17,10 @@ class ChatRadicalClient
             puts "client> Usuário abortou o programa. Saindo..."
         rescue
             puts "error> Não foi possível conectar-se ao servidor!"
-            raise
         ensure
-            @server.close
+            if @server
+                @server.close
+            end
         end
     end
 
@@ -31,26 +32,18 @@ class ChatRadicalClient
             print "Entre com seu nome: "
             nome = STDIN.gets.chomp
 
+            # Manda a requisição pro servidor (handshake)
             @server.puts "CONN #{nick} #{nome}"
             resposta = @server.readline.chomp
-            if resposta =~ /^ERR_CONN /
-                match = /^ERR_CONN (.*)/.match resposta
-                if match
-                    puts "ERRO: #{match[1]}"
-                end
-            elsif resposta =~ /^RCV_CONN OK /
-                match = /^RCV_CONN OK ([0-9]+)$/.match resposta
-                if match
-                    puts "Conectado! Sua conexão é de número #{match[1]}."
-                    while motd = @server.readline.chomp
-                        if motd =~ /^RCV_MOTD OK$/
-                            break
-                        else
-                            puts(motd)
-                        end
-                    end
-                    break
-                end
+
+            # Interpreta o retorno do handshake
+            match = /^RCV_CONN (ERR (.+)|OK ([0-9]+))$/.match resposta
+            if match[1] =~ /^ERR /
+                CliErro(match[2])
+            elsif match[1] =~ /^OK /
+                puts "Conectado! Sua conexão é de número #{match[3]}."
+                CliShowMotd()
+                break
             end
         end
     end
@@ -81,103 +74,170 @@ class ChatRadicalClient
     end
 
     def RecebimentoDoServer(linha)
-        if linha =~ /^RCV_JOINCHN /
-            match = /^RCV_JOINCHN (ERR (.*)|OK ([\w]+))$/.match linha
-            if match
-                if match[1] =~ /^ERR /
-                    puts "error> #{match[2]}"
-                else
-                    puts "client> Mudando para a sala '#{match[3]}'"
-                end
+        # Quando mudou de sala
+        match = /^RCV_JOINCHN (ERR (.*)|OK ([\w]+))$/.match linha
+        if match
+            if match[1] =~ /^ERR /
+                CliErro(match[2])
+                return 1
+            else
+                CliMudancaSala(match[3])
+                return 0
             end
-        elsif linha =~ /^RCV_LISTCHN OK /
-            match = /^RCV_LISTCHN OK (.+)/.match linha
-            if match
-                puts "client> Salas disponíveis:"
-                match[1].split('|').each do |sala|
-                    puts "client>    - #{sala}"
-                end
+        end
+
+        # Listar todas as salas do servidor
+        match = /^RCV_LISTCHN (ERR (.+)|OK (.+))$/.match linha
+        if match
+            if match[1] =~ /^ERR /
+                CliErro(match[2])
+                return 1
+            else
+                CliListaSalas(match[3])
+                return 0
             end
-        elsif linha =~ /^RCV_WHOCHN OK /
-            match = /^RCV_WHOCHN OK ([a-zA-Z0-9\|]+)/.match linha
-            if match
-                puts "client> Usuarios na sala:"
-                match[1].split('|').each do |membro|
-                    puts "client>    - #{membro}"
-                end
+        end
+
+        # Lista usuarios da sala atual
+        match = /^RCV_WHOCHN (ERR (.+)|OK (.+))$/.match linha
+        if match
+            if match[1] =~ /^ERR /
+                CliErro(match[2])
+                return 1
+            else
+                CliListaUsuariosSala(match[3])
+                return 0
             end
-        elsif linha =~ /^RCV_INFOCHN OK /
-            match = /^RCV_INFOCHN OK ([a-zA-Z0-9]{1,24}) (.+)/.match linha
-            if match
-                puts "client> Você está no canal #{match[1]} - #{match[2]}"
+        end
+
+        # Informações sobre o canal
+        match = /^RCV_INFOCHN (ERR (.+)|OK ([a-zA-Z0-9]{1,24}) (.+))$/.match linha
+        if match
+            if match[1] =~ /^ERR /
+                CliErro(match[2])
+                return 1
+            else
+                CliInformacoesCanal(match[3], match[4])
+                return 0
             end
-        elsif linha =~ /^RCV_NICK /
-            match = /^RCV_NICK (ERR (.*)|OK)/.match linha
-            if match
-                if match[1] =~ /^ERR /
-                    puts "error> #{match[2]}"
-                else
-                    puts "client> Nick mudado."
-                end
+        end
+
+        # Mudança de nick
+        match = /^RCV_NICK (ERR (.*)|OK)/.match linha
+        if match
+            if match[1] =~ /^ERR /
+                CliErro(match[2])
+                return 1
+            else
+                CliNick()
+                return 0
             end
-         elsif linha =~ /^RCV_PVT /
-            match = /^RCV_PVT (ERR (.*)|OK)/.match linha
-            if match
-                if match[1] =~ /^ERR /
-                    puts "error> #{match[2]}"
-                else
-                    puts "client> Mensagem enviada."
-                end
+        end
+
+        # Mensagem privada 
+        match = /^RCV_PVT (ERR (.*)|OK)/.match linha
+        if match
+            if match[1] =~ /^ERR /
+                CliErro(match[2])
+                return 1
+            else
+                CliPvtMsg()
+                return 0
             end
-        elsif linha =~ /^RCV_CHATLOG /
-            match = /^RCV_CHATLOG (.+)/.match linha
-            if match
-                puts match[1]
-            end
-        elsif linha =~ /^RCV_CHATMSG /
-            match = /^RCV_CHATMSG (.+)/.match linha
-            if match
-                puts match[1]
-            end
+        end
+
+        # Log de mensagens da sala
+        match = /^RCV_CHATLOG (.+)/.match linha
+        if match
+            CliChatLog(match[1])
+            return 0
+        end
+
+        # Mensagens de chat
+        match = /^RCV_CHATMSG (.+)/.match linha
+        if match
+            CliChatMsg(match[1])
+            return 0
         end
     end
 
     def UserCMD(linha)
-        if linha =~ /^\/list( |$)/i
+        # Listar salas
+        match = /^\/list( |$)/i.match linha
+        if match
             ListarSalas()
-        elsif linha =~ /^\/who( |$)/i
+            return 0
+        end
+
+        # Listar Usuarios da sala atual
+        match = /^\/who( |$)/i.match linha
+        if match
             ListarMembros()
-        elsif linha =~ /^\/join /i
-            match = /^\/join ([a-zA-Z0-9]{1,24})( (.+))?/.match linha
-            if match
-                EntrarSala(match[1], match[3])
-            end
-        elsif linha =~ /^\/info( |$)/i
+            return 0
+        end
+
+        # Entrar em uma sala (criar se nao existir)
+        match = /^\/join ([a-zA-Z0-9]{1,24})( (.+))?/i.match linha
+        if match
+            EntrarSala(match[1], match[3])
+            return 0
+        end
+
+        # Informações da sala atual
+        match = /^\/info( |$)/i.match linha
+        if match
             InfoSala()
-        elsif linha =~ /^\/nick /i
-            match = /^\/nick ([a-zA-Z0-9]{1,24})$/.match linha
-            if match
-                MudarNick(match[1])
-            end
-        elsif linha =~ /^\/msg /i
-            match = /^\/msg ([a-zA-Z0-9]{1,24}) (.+)/.match linha
-            if match
-                EnviarPVT(match[1], match[2])
-            end
-        elsif linha =~ /^\/log( |$)/i
-            match = /^\/log ([0-9]{1,2})/.match linha
-            if match
-                VerLog(match[1])
+            return 0
+        end
+
+        # Mudança de nick
+        match = /^\/nick ([a-zA-Z0-9]{1,24})$/.match linha
+        if match
+            MudarNick(match[1])
+            return 0
+        end
+
+        # Envio de mensagem privada
+        match = /^\/msg ([a-zA-Z0-9]{1,24}) (.+)/.match linha
+        if match
+            EnviarPVT(match[1], match[2])
+            return 0
+        end
+
+        # Log de conversa da sala atual
+        match = /^\/log( ([0-9]{1,2})|$)/i.match linha
+        if match
+            if match[2]
+                VerLog(match[2])
             else
                 VerLog()
             end
-        elsif linha =~ /^\/quit( |$)/i
-            Desconectar()
-        elsif linha =~ /^\//i
-            puts "error> Comando inválido!"
-        else
-            @server.puts "CMD_CHAT #{linha}"
+            return 0
         end
+
+        # Sair do chat
+        match = /^\/quit( |$)/i.match linha
+        if match
+            Desconectar()
+        end
+
+        # Ajuda
+        match = /^\/help( |$)/i.match linha
+        if match
+            CliAjuda()
+            return 0
+        end
+
+        # Comandos invalidos
+        match = /^\//i.match linha
+        if match
+            CliErro('Comando inválido!')
+            return 1
+        end
+
+        # Tudo o mais é mensagem de chat
+        @server.puts "CMD_CHAT #{linha}"
+        return 0
     end
 
     def ListarSalas
@@ -212,7 +272,70 @@ class ChatRadicalClient
         puts "client> Saindo..."
         @server.puts "QUIT"
     end
- 
+
+    def CliAjuda
+        puts "cliente> Ajuda!"
+        puts "   * /list - Lista os canais"
+        puts "   * /join <canal> [descricao] - Entra no canal, se nao existir cria um novo"
+        puts "   * /who - Mostra quem tá no canal atual"
+        puts "   * /info - Mostra o nome do canal atual e sua descricao"
+        puts "   * /log [n] - Mostra n número de linhas de histórico do canal (padrão 30)"
+        puts "   * /msg <nick> <msg> - Manda uma mensagem privada para alguém"
+        puts "   * /nick <novo_nick> - Muda o seu nick"
+        puts "   * /quit - Sai do servidor"
+    end
+
+    def CliShowMotd
+        while motd = @server.readline.chomp
+            if motd =~ /^RCV_MOTD OK$/
+                return 0
+            else
+                puts(motd)
+            end
+        end
+    end
+
+    def CliErro(msg)
+        puts "error> #{msg}"
+    end
+
+    def CliMudancaSala(nome)
+        puts "client> Mudando para a sala '#{nome}'"
+    end
+
+    def CliListaSalas(rcv)
+        puts "client> Salas disponíveis:"
+        rcv.split('|').each do |sala|
+            puts "client>    - #{sala}"
+        end
+    end
+
+    def CliListaUsuariosSala(rcv)
+        puts "client> Usuarios na sala:"
+        rcv.split('|').each do |membro|
+            puts "client>    - #{membro}"
+        end
+    end
+
+    def CliInformacoesCanal(nome, descricao)
+        puts "client> Você está no canal #{nome} - #{descricao}"
+    end
+
+    def CliNick
+        puts "client> Nick mudado."
+    end
+
+    def CliPvtMsg
+        puts "client> Mensagem enviada."
+    end 
+
+    def CliChatLog(msg)
+        puts msg
+    end
+
+    def CliChatMsg(msg)
+        puts msg
+    end
 end
 
-client = ChatRadicalClient.new("localhost", "7000")
+client = ChatRadicalClient.new("192.168.1.182", "7000")

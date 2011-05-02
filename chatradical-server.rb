@@ -133,7 +133,7 @@ class ChatRadicalServer
             nome = connmatch[2]
 
             if pegar_usuario_por_nick(nick)
-                cliente.puts "ERR_CONN Nick já em uso! Tente outro"
+                cliente.puts "RCV_CONN ERR Nick já em uso! Tente outro"
             else
                 usuario = Usuario.new(connid, nick, nome, cliente)
 
@@ -144,7 +144,7 @@ class ChatRadicalServer
                 cliente.puts ClienteMotd()
                 cliente.puts "RCV_MOTD OK"
 
-                @salas["default"].AdicionarMembro(cliente, usuario.nick)
+                @salas["default"].AdicionarMembro(cliente, usuario)
                 cliente.puts usuario.EntrarSala('default')
                 msg = "#{usuario.nick} entrou na sala 'default'"
                 ChatNotice(usuario, msg)
@@ -154,7 +154,7 @@ class ChatRadicalServer
         elsif linha =~ /^QUIT( |$)/i
             ClienteDesconectar(connid, cliente)
         else
-            cliente.puts "ERR_CONN Sintaxe incorreta"
+            cliente.puts "RCV_CONN ERR Sintaxe incorreta"
         end
     end
 
@@ -202,10 +202,10 @@ class ChatRadicalServer
                         if sala_atual
                             msg = "#{usuario.nick} saiu da sala"
                             ChatNotice(usuario, msg)
-                            @salas[sala_atual].RemoverMembro(cliente, usuario.nick)
+                            @salas[sala_atual].RemoverMembro(cliente, usuario)
                         end
 
-                        @salas[sala].AdicionarMembro(cliente, usuario.nick)
+                        @salas[sala].AdicionarMembro(cliente, usuario)
                         cliente.puts usuario.EntrarSala(sala)
                         msg = "#{usuario.nick} entrou na sala '#{sala}'"
                         ChatNotice(usuario, msg)
@@ -219,8 +219,8 @@ class ChatRadicalServer
             elsif linha =~ /^CMD_WHOCHN( |$)/i
                 sala = usuario.sala
                 cliente.write "RCV_WHOCHN OK "
-                @salas[sala].nicks.each do |nick|
-                    cliente.write "#{nick}|"
+                @salas[sala].nicks.each do |umusuario|
+                    cliente.write "#{umusuario.nick}|"
                 end
                 cliente.puts
             elsif linha =~ /^CMD_VLOG /i
@@ -250,9 +250,9 @@ class ChatRadicalServer
                         cliente.puts "RCV_NICK ERR Nick já em uso"
                     else
                         novo_nick = match[1]
-                        @nicks[usuario.id] = novo_nick
-                        @salas[usuario.sala].RemoverMembro(cliente, usuario.nick)
-                        @salas[usuario.sala].AdicionarMembro(cliente, novo_nick)
+                        #@nicks[usuario.id] = novo_nick
+                        #@salas[usuario.sala].RemoverMembro(cliente, usuario)
+                        #@salas[usuario.sala].AdicionarMembro(cliente, novo_nick)
 
                         msg = "#{usuario.nick} trocou de nick para '#{novo_nick}'"
                         ChatNotice(usuario, msg)
