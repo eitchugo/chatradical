@@ -95,6 +95,12 @@ recebimento do protocolo de chat.
       <div class="name-list">
       <a href="#M000042">Chat</a>&nbsp;&nbsp;
       <a href="#M000043">ChatNotice</a>&nbsp;&nbsp;
+      <a href="#M000046">CliEntrarSala</a>&nbsp;&nbsp;
+      <a href="#M000047">CliInfoSala</a>&nbsp;&nbsp;
+      <a href="#M000045">CliListarSalas</a>&nbsp;&nbsp;
+      <a href="#M000050">CliNick</a>&nbsp;&nbsp;
+      <a href="#M000048">CliUsuariosSala</a>&nbsp;&nbsp;
+      <a href="#M000049">CliVerLog</a>&nbsp;&nbsp;
       <a href="#M000037">ClienteComandos</a>&nbsp;&nbsp;
       <a href="#M000034">ClienteConectar</a>&nbsp;&nbsp;
       <a href="#M000035">ClienteDesconectar</a>&nbsp;&nbsp;
@@ -203,13 +209,117 @@ Gera uma mensagem de notificação e manda para os clientes da sala
         </div>
       </div>
 
+      <div id="method-M000046" class="method-detail">
+        <a name="M000046"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalServer.src/M000046.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalServer.src/M000046.html');return false;">
+          <span class="method-name">CliEntrarSala</span><span class="method-args">(cliente, usuario, sala, descricao=nil)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Trata o comando de entrar em uma sala enviado pelo usuário
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000047" class="method-detail">
+        <a name="M000047"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalServer.src/M000047.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalServer.src/M000047.html');return false;">
+          <span class="method-name">CliInfoSala</span><span class="method-args">(sala)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Trata o comando de informações da sala atual enviado pelo usuário
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000045" class="method-detail">
+        <a name="M000045"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalServer.src/M000045.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalServer.src/M000045.html');return false;">
+          <span class="method-name">CliListarSalas</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Trata o comando de listar salas enviado pelo usuário
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000050" class="method-detail">
+        <a name="M000050"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalServer.src/M000050.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalServer.src/M000050.html');return false;">
+          <span class="method-name">CliNick</span><span class="method-args">(usuario, nick)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Trata o comando de mudança de nick enviado pelo usuário
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000048" class="method-detail">
+        <a name="M000048"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalServer.src/M000048.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalServer.src/M000048.html');return false;">
+          <span class="method-name">CliUsuariosSala</span><span class="method-args">(sala)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Trata o comando de informações de usuários em uma sala enviado pelo
+usuário
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000049" class="method-detail">
+        <a name="M000049"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalServer.src/M000049.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalServer.src/M000049.html');return false;">
+          <span class="method-name">CliVerLog</span><span class="method-args">(cliente, sala, tail)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Trata o comando de ver o registro de conversa de um canal enviado pelo
+usuário
+</p>
+        </div>
+      </div>
+
       <div id="method-M000037" class="method-detail">
         <a name="M000037"></a>
 
         <div class="method-heading">
           <a href="ChatRadicalServer.src/M000037.html" target="Code" class="method-signature"
             onclick="popupCode('ChatRadicalServer.src/M000037.html');return false;">
-          <span class="method-name">ClienteComandos</span><span class="method-args">(usuario,cliente)</span>
+          <span class="method-name">ClienteComandos</span><span class="method-args">(usuario, cliente)</span>
           </a>
         </div>
       

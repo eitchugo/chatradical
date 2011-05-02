@@ -11,10 +11,9 @@
 </head>
 <body class="standalone-code">
   <pre><span class="ruby-comment cmt"># File chatradical-server.rb, line 53</span>
-    <span class="ruby-keyword kw">def</span> <span class="ruby-constant">AdicionarMembro</span>(<span class="ruby-identifier">membro</span>, <span class="ruby-identifier">nick</span>)
-        <span class="ruby-ivar">@membros</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">membro</span>)
-        <span class="ruby-ivar">@nicks</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">nick</span>)
-        <span class="ruby-ivar">@nicks</span> = <span class="ruby-ivar">@nicks</span>.<span class="ruby-identifier">sort</span>()
+    <span class="ruby-keyword kw">def</span> <span class="ruby-constant">AdicionarMembro</span>(<span class="ruby-identifier">cliente</span>, <span class="ruby-identifier">usuario</span>)
+        <span class="ruby-ivar">@membros</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">cliente</span>)
+        <span class="ruby-ivar">@nicks</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">usuario</span>)
     <span class="ruby-keyword kw">end</span></pre>
 </body>
 </html>

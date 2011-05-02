@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
 </head>
 <body class="standalone-code">
-  <pre><span class="ruby-comment cmt"># File chatradical-server.rb, line 362</span>
+  <pre><span class="ruby-comment cmt"># File chatradical-server.rb, line 347</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">Chat</span>(<span class="ruby-identifier">linha</span>, <span class="ruby-identifier">usuario</span>)
         <span class="ruby-identifier">sala</span> = <span class="ruby-ivar">@salas</span>[<span class="ruby-identifier">usuario</span>.<span class="ruby-identifier">sala</span>]
         <span class="ruby-identifier">msg</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">strftime</span>(<span class="ruby-value str">&quot;[%H:%M:%S] &quot;</span>) <span class="ruby-operator">+</span> <span class="ruby-node">&quot;&lt;#{usuario.nick}&gt; #{linha}&quot;</span>

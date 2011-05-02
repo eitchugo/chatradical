@@ -69,6 +69,7 @@
         <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/quit( |$)/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
         <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
             <span class="ruby-constant">Desconectar</span>()
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
         <span class="ruby-keyword kw">end</span>
 
         <span class="ruby-comment cmt"># Ajuda</span>

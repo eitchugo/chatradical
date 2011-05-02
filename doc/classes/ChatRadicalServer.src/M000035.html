@@ -10,8 +10,16 @@
   <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
 </head>
 <body class="standalone-code">
-  <pre><span class="ruby-comment cmt"># File chatradical-server.rb, line 189</span>
+  <pre><span class="ruby-comment cmt"># File chatradical-server.rb, line 202</span>
     <span class="ruby-keyword kw">def</span> <span class="ruby-constant">ClienteDesconectar</span>(<span class="ruby-identifier">connid</span>, <span class="ruby-identifier">cliente</span>)
+        <span class="ruby-comment cmt"># Retira a conexão dos registradores</span>
+        <span class="ruby-ivar">@salas</span>.<span class="ruby-identifier">each_value</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">sala</span><span class="ruby-operator">|</span>
+            <span class="ruby-identifier">sala</span>.<span class="ruby-constant">RemoverMembro</span>(<span class="ruby-identifier">cliente</span>, <span class="ruby-ivar">@nicks</span>[<span class="ruby-identifier">connid</span>])
+        <span class="ruby-keyword kw">end</span>
+        <span class="ruby-ivar">@descriptors</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">cliente</span>)
+        <span class="ruby-ivar">@nicks</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">connid</span>)
+
+        <span class="ruby-comment cmt"># Fecha o socket</span>
         <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">close</span>
     <span class="ruby-keyword kw">end</span></pre>
 </body>
