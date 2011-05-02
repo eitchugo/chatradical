@@ -247,6 +247,7 @@ class ChatRadicalClient
         match = /^\/quit( |$)/i.match linha
         if match
             Desconectar()
+            return 0
         end
 
         # Ajuda
