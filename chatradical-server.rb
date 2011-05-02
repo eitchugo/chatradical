@@ -137,11 +137,6 @@ class ChatRadicalServer
                     rescue
                         puts "server> Desconectado: #{addr}:#{port}"
                     ensure
-                        @descriptors.delete(cliente)
-                        @salas.each_value do |sala|
-                            sala.RemoverMembro(cliente, @nicks[connid])
-                        end
-                        @nicks.delete(connid)
                         ClienteDesconectar(connid, cliente)
                     end
 
@@ -154,39 +149,66 @@ class ChatRadicalServer
 
     # Procedimento de handshake entre o servidor e o cliente.
     def ClienteConectar(connid, cliente, linha)
-        connmatch = /^CONN ([a-zA-Z0-9]{1,24}) ([a-zA-Z_-]{1,32})$/i.match linha
-        if connmatch
-            nick = connmatch[1]
-            nome = connmatch[2]
+        # Caso esteja fazendo o handshake
+        match = /^CONN ([a-zA-Z0-9]{1,24}) ([a-zA-Z_-]{1,32})$/i.match linha
+        if match
+            nick = match[1]
+            nome = match[2]
 
             if pegar_usuario_por_nick(nick)
+                # Ja existe um apelido conectado
                 cliente.puts "RCV_CONN ERR Nick já em uso! Tente outro"
+                return 1
             else
+                # Completa o handshake
                 usuario = Usuario.new(connid, nick, nome, cliente)
 
+		# Adiciona a conexão nos registradores
                 @nicks[connid] = usuario
                 @descriptors.push(cliente)
 
+		# Manda um OK e a mensagem de boas vindas
                 cliente.puts "RCV_CONN OK #{connid}"
                 cliente.puts ClienteMotd()
                 cliente.puts "RCV_MOTD OK"
 
+		# Coloca o usuário na sala padrão
                 @salas["default"].AdicionarMembro(cliente, usuario)
                 cliente.puts usuario.EntrarSala('default')
                 msg = "#{usuario.nick} entrou na sala 'default'"
                 ChatNotice(usuario, msg)
 
-                ClienteComandos(usuario,cliente)
+                # O usuário está conectado e aceitando comandos
+                loop do
+                    ClienteComandos(usuario,cliente)
+                end
+
+                return 0
             end
-        elsif linha =~ /^QUIT( |$)/i
-            ClienteDesconectar(connid, cliente)
-        else
-            cliente.puts "RCV_CONN ERR Sintaxe incorreta"
         end
+
+        # Caso queira desconectar
+        match = /^QUIT( |$)/i.match linha
+        if match
+            ClienteDesconectar(connid, cliente)
+            return 0
+        end
+
+        # Todo o mais, nesta etapa, dá sintaxe incorreta
+        cliente.puts "RCV_CONN ERR Sintaxe incorreta"
+        return 1
     end
 
     # Desconecta o cliente do servidor.
     def ClienteDesconectar(connid, cliente)
+        # Retira a conexão dos registradores
+        @salas.each_value do |sala|
+            sala.RemoverMembro(cliente, @nicks[connid])
+        end
+        @descriptors.delete(cliente)
+        @nicks.delete(connid)
+
+        # Fecha o socket
         cliente.close
     end
 
@@ -208,105 +230,69 @@ class ChatRadicalServer
 
     # Escuta os comandos enviados pelos clientes e de acordo com o protocolo
     # de chat, chama outros métodos para definir o que fazer.
-    def ClienteComandos(usuario,cliente)
-        loop do
-            linha = cliente.readline.chomp
-            if linha =~ /^CMD_LISTCHN( |$)/i
-                lista = ListarSalas()
-                cliente.write "RCV_LISTCHN OK "
-                lista.each do |sala|
-                    cliente.write sala + "|"
-                end
-                cliente.puts
-            elsif linha =~ /^CMD_JOINCHN /i
-                match = /^CMD_JOINCHN ([a-zA-Z0-9]{1,24})( (.+))?/i.match linha
-                if match
-                    sala = match[1]
-                    if match[2]
-                        descricao = match[3]
-                    end
+    def ClienteComandos(usuario, cliente)
+        # Le a linha enviada pelo cliente
+        linha = cliente.readline.chomp
 
-                    unless NovaSala(sala, descricao)
-                        cliente.puts "RCV_JOINCHN ERR Necessário uma descrição para criar uma sala."
-                    else
-                        sala_atual = usuario.sala
-                        if sala_atual
-                            msg = "#{usuario.nick} saiu da sala"
-                            ChatNotice(usuario, msg)
-                            @salas[sala_atual].RemoverMembro(cliente, usuario)
-                        end
-
-                        @salas[sala].AdicionarMembro(cliente, usuario)
-                        cliente.puts usuario.EntrarSala(sala)
-                        msg = "#{usuario.nick} entrou na sala '#{sala}'"
-                        ChatNotice(usuario, msg)
-                    end
-                else
-                    cliente.puts "RCV_JOINCHN ERR Nome de sala invalido"
-                end
-            elsif linha =~ /^CMD_INFOCHN( |$)/i
-                sala = usuario.sala
-                cliente.puts "RCV_INFOCHN OK #{@salas[sala].nome} #{@salas[sala].descricao}"
-            elsif linha =~ /^CMD_WHOCHN( |$)/i
-                sala = usuario.sala
-                cliente.write "RCV_WHOCHN OK "
-                @salas[sala].nicks.each do |umusuario|
-                    cliente.write "#{umusuario.nick}|"
-                end
-                cliente.puts
-            elsif linha =~ /^CMD_VLOG /i
-                sala = usuario.sala
-                match = /^CMD_VLOG ([0-9]{1,2})/.match linha
-                if match
-                    tail = match[1].to_i
-                    log = @salas[sala].VerLog(tail)
-                else
-                    log = @salas[sala].VerLog(30)
-                end
-
-                log.each do |linha_log|
-                    cliente.puts "RCV_CHATLOG [LOG] #{linha_log}"
-                end
-            elsif linha =~ /^CMD_PVT /
-                match = /^CMD_PVT ([a-zA-Z0-9]{1,24}) (.+)/i.match linha
-                if match
-                    cliente.puts EnviarPVT(usuario, match[1], match[2])
-                end
-            elsif linha =~ /^CMD_WHOAMI( |$)/i
-                cliente.puts "RCV_WHOAMI OK #{usuario.id} #{usuario.nick} #{usuario.nome} #{usuario.sala}"
-            elsif linha =~ /^CMD_NICK /i
-                match = /^CMD_NICK ([a-zA-Z0-9]{1,24})/i.match linha
-                if match
-                    if pegar_usuario_por_nick(match[1])
-                        cliente.puts "RCV_NICK ERR Nick já em uso"
-                    else
-                        novo_nick = match[1]
-                        #@nicks[usuario.id] = novo_nick
-                        #@salas[usuario.sala].RemoverMembro(cliente, usuario)
-                        #@salas[usuario.sala].AdicionarMembro(cliente, novo_nick)
-
-                        msg = "#{usuario.nick} trocou de nick para '#{novo_nick}'"
-                        ChatNotice(usuario, msg)
-
-                        usuario.nick = novo_nick
-                        cliente.puts "RCV_NICK OK"
-                    end
-                end
-            elsif linha =~ /^CMD_CHAT /i
-                match = /^CMD_CHAT (.+)/i.match linha
-                if match
-                    cliente.puts Chat(match[1], usuario)
-                else
-                    cliente.puts "ERR_CMD Mensagem de chat inválida"
-                end
-            elsif linha =~ /^QUIT( |$)/i
-                msg = "#{usuario.nick} saiu da sala"
-                ChatNotice(usuario, msg)
-                ClienteDesconectar(usuario.id, cliente)
-            else
-                cliente.puts "ERR_CMD Comando Invalido"
-            end
+        match = /^CMD_LISTCHN( |$)/i.match linha
+        if match
+            cliente.puts CliListarSalas()
+            return 0
         end
+
+        match = /^CMD_JOINCHN ([a-zA-Z0-9]{1,24})( (.+))?/i.match linha
+        if match
+            CliEntrarSala(cliente, usuario, match[1], match[3])
+            return 0
+        end
+
+        match = /^CMD_INFOCHN( |$)/i.match linha
+        if match
+            cliente.puts CliInfoSala(usuario.sala)
+            return 0
+        end
+
+        match = /^CMD_WHOCHN( |$)/i.match linha
+        if match
+            cliente.puts CliUsuariosSala(usuario.sala)
+            return 0
+        end
+
+        match = /^CMD_VLOG( ([0-9]{1,2}))?/.match linha
+        if match
+            CliVerLog(cliente, usuario.sala, match[2])
+            return 0
+        end
+
+        match = /^CMD_PVT ([a-zA-Z0-9]{1,24}) (.+)/i.match linha
+        if match
+            cliente.puts EnviarPVT(usuario, match[1], match[2])
+            return 0
+        end
+
+        match = /^CMD_NICK ([a-zA-Z0-9]{1,24})/i.match linha
+        if match
+            cliente.puts CliNick(usuario, match[1])
+            return 0
+        end
+
+        match = /^CMD_CHAT (.+)/i.match linha
+        if match
+            cliente.puts Chat(match[1], usuario)
+            return 0
+        end
+
+        match = /^QUIT( |$)/i
+        if match
+            msg = "#{usuario.nick} saiu da sala"
+            ChatNotice(usuario, msg)
+            ClienteDesconectar(usuario.id, cliente)
+            return 0
+        end
+
+        # Qualquer outro comando é inválido
+        cliente.puts "ERR_CMD Comando Invalido"
+        return 1
     end
 
     # Obtém uma classe usuário através do seu nick
@@ -399,6 +385,90 @@ class ChatRadicalServer
          else
              return "RCV_PVT ERR Nick não existe!"
          end
+    end
+
+    # Trata o comando de listar salas enviado pelo usuário
+    def CliListarSalas
+        lista = ListarSalas()
+        retorno = "RCV_LISTCHN OK "
+        lista.each do |sala|
+            retorno = retorno + sala + "|"
+        end
+        return retorno
+    end
+
+    # Trata o comando de entrar em uma sala enviado pelo usuário
+    def CliEntrarSala(cliente, usuario, sala, descricao=nil)
+        unless NovaSala(sala, descricao)
+            return "RCV_JOINCHN ERR Necessário uma descrição para criar uma sala."
+        else
+            sala_atual = usuario.sala
+            if sala_atual
+                msg = "#{usuario.nick} saiu da sala"
+                ChatNotice(usuario, msg)
+                @salas[sala_atual].RemoverMembro(cliente, usuario)
+            end
+
+            @salas[sala].AdicionarMembro(cliente, usuario)
+            cliente.puts usuario.EntrarSala(sala)
+
+            msg = "#{usuario.nick} entrou na sala '#{sala}'"
+            ChatNotice(usuario, msg)
+            return 0
+        end
+    end
+
+    # Trata o comando de informações da sala atual enviado pelo usuário
+    def CliInfoSala(sala)
+        return "RCV_INFOCHN OK #{@salas[sala].nome} #{@salas[sala].descricao}"
+    end
+
+    # Trata o comando de informações de usuários em uma sala enviado
+    # pelo usuário
+    def CliUsuariosSala(sala)
+        retorno = "RCV_WHOCHN OK "
+        @salas[sala].nicks.each do |umusuario|
+            retorno = retorno + "#{umusuario.nick}|"
+        end
+        return retorno
+    end
+
+    # Trata o comando de ver o registro de conversa de um canal enviado
+    # pelo usuário
+    def CliVerLog(cliente, sala, tail)
+        if tail == nil
+            tail = 30
+        else
+            tail = tail.to_i
+        end
+
+        cliente.puts tail
+
+        log = @salas[sala].VerLog(tail)
+
+        log.each do |linha_log|
+            cliente.puts "RCV_CHATLOG [LOG] #{linha_log}"
+        end
+        return 0
+    end
+
+    # Trata o comando de mudança de nick enviado pelo usuário
+    def CliNick(usuario, nick)
+        if pegar_usuario_por_nick(nick)
+            return "RCV_NICK ERR Nick já em uso"
+        else
+            #@nicks[usuario.id] = novo_nick
+            #@salas[usuario.sala].RemoverMembro(cliente, usuario)
+            #@salas[usuario.sala].AdicionarMembro(cliente, novo_nick)
+
+            nick_velho = usuario.nick
+            usuario.nick = nick
+
+            msg = "#{nick_velho} trocou de nick para '#{nick}'"
+            ChatNotice(usuario, msg)
+
+            return "RCV_NICK OK"
+        end
     end
 
 end
