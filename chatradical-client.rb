@@ -1,9 +1,23 @@
 #!/usr/bin/ruby
-# 
-# 
+# Este programa faz parte da aula de Sistemas Distribuídos da FIAP,
+# e tem como intuito ser um cliente de um servidor de chat simples.
+#
+# O programa é executado de acordo com os argumentos 1 e 2, onde
+# o 1 é o servidor e o 2 é o cliente. Caso não seja passado nenhum
+# argumento de linha de comando, configura-se o 1 para localhost e
+# o 2 para 7000.
+#
+# Author:: Hugo Cisneiros (Eitch) (mailto:hugo.cisneiros@gmail.com)
+# License:: Do What The Fuck You Want To Public License
+
 require 'socket'
 
+# Esta classe contém todo o cliente de chat e é a única necessária
+# para esta tarefa.
 class ChatRadicalClient
+
+    # Tenta conectar-se ao servidor utilizando o hostname e porta. Caso falhe,
+    # o programa termina.
     def initialize(hostname, port)
         begin
             puts "client> Conectando-se ao servidor #{hostname}:#{port}..."
@@ -25,6 +39,8 @@ class ChatRadicalClient
         end
     end
 
+    # Mecanismo de handshake com o servidor para estabelecer uma conexão
+    # válida no serviço de chat.
     def Conectar()
  
         loop do
@@ -49,6 +65,13 @@ class ChatRadicalClient
         end
     end
 
+    # Escuta por comandos do usuário (via entrada padrão/STDIN) ou por
+    # mensagens do servidor.
+    #
+    # * Para escutar por comandos do usuário via STDIN, usa-se uma nova
+    # thread pois o Windows não suporta non-blocking IO para o STDIN.
+    # * Usa-se o select() (non-blocking IO) para escutar as mensagens do
+    # servidor constantemente.
     def Listener()
 
         # Thread do input do usuario
@@ -74,6 +97,8 @@ class ChatRadicalClient
         end
     end
 
+    # Recebe as mensagens do servidor e decide o que fazer com elas,
+    # chamando outros métodos.
     def RecebimentoDoServer(linha)
         # Quando mudou de sala
         match = /^RCV_JOINCHN (ERR (.*)|OK ([\w]+))$/.match linha
@@ -162,6 +187,8 @@ class ChatRadicalClient
         end
     end
 
+    # De acordo com que o usuário digita na entrada padrão, chama outros
+    # métodos que irão lidar com as requisições.
     def UserCMD(linha)
         # Listar salas
         match = /^\/list( |$)/i.match linha
@@ -241,39 +268,51 @@ class ChatRadicalClient
         return 0
     end
 
+    # Manda para o servidor a requisição de listar as salas disponíveis.
     def ListarSalas
         @server.puts "CMD_LISTCHN"
     end
 
+    # Manda para o servidor a requisição de listar os usuários da sala atual.
     def ListarMembros
         @server.puts "CMD_WHOCHN"
     end
 
+    # Manda para o servidor a requisição de mostrar informações da sala.
     def InfoSala
         @server.puts "CMD_INFOCHN"
     end
 
+    # Manda para o servidor a requsição de entrar em uma sala.
     def EntrarSala(nome, descricao)
         @server.puts "CMD_JOINCHN #{nome} #{descricao}"
     end
 
+    # Manda para o servidor a requisição de mostrar o registro de conversa
+    # da sala.
     def VerLog(tail=nil)
         @server.puts "CMD_VLOG #{tail}"
     end
 
+    # Manda para o servidor a requisição de mudança de apelido (nick).
     def MudarNick(nick)
         @server.puts "CMD_NICK #{nick}"
     end
 
+    # Manda para o servidor a requisição de uma mensagem privada para um
+    # usuário.
     def EnviarPVT(nick, msg)
         @server.puts "CMD_PVT #{nick} #{msg}"
     end
 
+    # Manda para o servidor a requisição para finalizar a conexão com o
+    # chat.
     def Desconectar
         puts "client> Saindo..."
         @server.puts "QUIT"
     end
 
+    # Mostra na tela do cliente os comandos que o usuário pode utilizar.
     def CliAjuda
         puts "cliente> Ajuda!"
         puts "   * /list - Lista os canais"
@@ -286,6 +325,7 @@ class ChatRadicalClient
         puts "   * /quit - Sai do servidor"
     end
 
+    # Mostra na tela do cliente a mensagem de boas vindas (MOTD).
     def CliShowMotd
         while motd = @server.readline.chomp
             if motd =~ /^RCV_MOTD OK$/
@@ -296,14 +336,17 @@ class ChatRadicalClient
         end
     end
 
+    # Mostra um erro na tela do cliente.
     def CliErro(msg)
         puts "error> #{msg}"
     end
 
+    # Mostra o resultado da mudança de sala na tela do cliente.
     def CliMudancaSala(nome)
         puts "client> Mudando para a sala '#{nome}'"
     end
 
+    # Mostra o resultado da lista de salas na tela do cliente.
     def CliListaSalas(rcv)
         puts "client> Salas disponíveis:"
         rcv.split('|').each do |sala|
@@ -311,6 +354,7 @@ class ChatRadicalClient
         end
     end
 
+    # Mostra o resultado da lista de usuários da sala na tela do cliente.
     def CliListaUsuariosSala(rcv)
         puts "client> Usuarios na sala:"
         rcv.split('|').each do |membro|
@@ -318,29 +362,32 @@ class ChatRadicalClient
         end
     end
 
+    # Mostra as informações da sala na tela do cliente.
     def CliInformacoesSala(nome, descricao)
         puts "client> Você está na sala #{nome} - #{descricao}"
     end
 
+    # Mostra o resultado da mudança de nick na tela do cliente.
     def CliNick
         puts "client> Nick mudado."
     end
 
+    # Mostra o resultado do envio de mensagem privada na tela do cliente.
     def CliPvtMsg
         puts "client> Mensagem enviada."
     end 
 
+    # Mostra o resultado do registro de conversa da sala na tela do cliente.
     def CliChatLog(msg)
         puts msg
     end
 
+    # Mostra uma mensagem recebida pelo servidor na tela do cliente.
     def CliChatMsg(msg)
         puts msg
     end
 end
 
-# Executa o programa de acordo com os argumentos
-# Padrão vai para localhost, porta 7000
 if ARGV.size == 2
    server = ARGV[0]
    port = ARGV[1]
