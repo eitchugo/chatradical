@@ -1,5 +1,6 @@
 #!/usr/bin/ruby
 # 
+# 
 require 'socket'
 
 class ChatRadicalClient
@@ -110,14 +111,14 @@ class ChatRadicalClient
             end
         end
 
-        # Informações sobre o canal
+        # Informações sobre a sala
         match = /^RCV_INFOCHN (ERR (.+)|OK ([a-zA-Z0-9]{1,24}) (.+))$/.match linha
         if match
             if match[1] =~ /^ERR /
                 CliErro(match[2])
                 return 1
             else
-                CliInformacoesCanal(match[3], match[4])
+                CliInformacoesSala(match[3], match[4])
                 return 0
             end
         end
@@ -276,10 +277,10 @@ class ChatRadicalClient
     def CliAjuda
         puts "cliente> Ajuda!"
         puts "   * /list - Lista os canais"
-        puts "   * /join <canal> [descricao] - Entra no canal, se nao existir cria um novo"
-        puts "   * /who - Mostra quem tá no canal atual"
-        puts "   * /info - Mostra o nome do canal atual e sua descricao"
-        puts "   * /log [n] - Mostra n número de linhas de histórico do canal (padrão 30)"
+        puts "   * /join <sala> [descricao] - Entra na sala, se nao existir cria um novo"
+        puts "   * /who - Mostra quem tá na sala atual"
+        puts "   * /info - Mostra o nome da sala atual e sua descrição"
+        puts "   * /log [n] - Mostra n número de linhas de histórico da sala (padrão 30)"
         puts "   * /msg <nick> <msg> - Manda uma mensagem privada para alguém"
         puts "   * /nick <novo_nick> - Muda o seu nick"
         puts "   * /quit - Sai do servidor"
@@ -317,8 +318,8 @@ class ChatRadicalClient
         end
     end
 
-    def CliInformacoesCanal(nome, descricao)
-        puts "client> Você está no canal #{nome} - #{descricao}"
+    def CliInformacoesSala(nome, descricao)
+        puts "client> Você está na sala #{nome} - #{descricao}"
     end
 
     def CliNick
@@ -338,4 +339,14 @@ class ChatRadicalClient
     end
 end
 
-client = ChatRadicalClient.new("192.168.1.182", "7000")
+# Executa o programa de acordo com os argumentos
+# Padrão vai para localhost, porta 7000
+if ARGV.size == 2
+   server = ARGV[0]
+   port = ARGV[1]
+else
+   server = "localhost"
+   port = 7000
+end
+
+client = ChatRadicalClient.new(server, port)
