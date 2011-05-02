@@ -298,7 +298,7 @@ class ChatRadicalServer
         return false
     end
 
-    def NovaSala(nome, descricao)
+    def NovaSala(nome, descricao=nil)
         unless @salas[nome]
             if descricao == nil
                 return false
@@ -309,6 +309,7 @@ class ChatRadicalServer
 
             return true
         end
+        return true
     end
 
     def ListarSalas()
