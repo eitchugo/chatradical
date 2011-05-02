@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>ClienteComandos (ChatRadicalServer)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File chatradical-server.rb, line 180</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-constant">ClienteComandos</span>(<span class="ruby-identifier">usuario</span>,<span class="ruby-identifier">cliente</span>)
+        <span class="ruby-identifier">loop</span> <span class="ruby-keyword kw">do</span>
+            <span class="ruby-identifier">linha</span> = <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">readline</span>.<span class="ruby-identifier">chomp</span>
+            <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^CMD_LISTCHN( |$)/i</span>
+                <span class="ruby-identifier">lista</span> = <span class="ruby-constant">ListarSalas</span>()
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">write</span> <span class="ruby-value str">&quot;RCV_LISTCHN OK &quot;</span>
+                <span class="ruby-identifier">lista</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">sala</span><span class="ruby-operator">|</span>
+                    <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">write</span> <span class="ruby-identifier">sala</span> <span class="ruby-operator">+</span> <span class="ruby-value str">&quot;|&quot;</span>
+                <span class="ruby-keyword kw">end</span>
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span>
+            <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^CMD_JOINCHN /i</span>
+                <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^CMD_JOINCHN ([a-zA-Z0-9]{1,24})( (.+))?/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+                <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+                    <span class="ruby-identifier">sala</span> = <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>]
+                    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>]
+                        <span class="ruby-identifier">descricao</span> = <span class="ruby-identifier">match</span>[<span class="ruby-value">3</span>]
+                    <span class="ruby-keyword kw">end</span>
+
+                    <span class="ruby-keyword kw">unless</span> <span class="ruby-constant">NovaSala</span>(<span class="ruby-identifier">sala</span>, <span class="ruby-identifier">descricao</span>)
+                        <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;RCV_JOINCHN ERR Necessário uma descrição para criar uma sala.&quot;</span>
+                    <span class="ruby-keyword kw">else</span>
+                        <span class="ruby-identifier">sala_atual</span> = <span class="ruby-identifier">usuario</span>.<span class="ruby-identifier">sala</span>
+                        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">sala_atual</span>
+                            <span class="ruby-identifier">msg</span> = <span class="ruby-node">&quot;#{usuario.nick} saiu da sala&quot;</span>
+                            <span class="ruby-constant">ChatNotice</span>(<span class="ruby-identifier">usuario</span>, <span class="ruby-identifier">msg</span>)
+                            <span class="ruby-ivar">@salas</span>[<span class="ruby-identifier">sala_atual</span>].<span class="ruby-constant">RemoverMembro</span>(<span class="ruby-identifier">cliente</span>, <span class="ruby-identifier">usuario</span>)
+                        <span class="ruby-keyword kw">end</span>
+
+                        <span class="ruby-ivar">@salas</span>[<span class="ruby-identifier">sala</span>].<span class="ruby-constant">AdicionarMembro</span>(<span class="ruby-identifier">cliente</span>, <span class="ruby-identifier">usuario</span>)
+                        <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-identifier">usuario</span>.<span class="ruby-constant">EntrarSala</span>(<span class="ruby-identifier">sala</span>)
+                        <span class="ruby-identifier">msg</span> = <span class="ruby-node">&quot;#{usuario.nick} entrou na sala '#{sala}'&quot;</span>
+                        <span class="ruby-constant">ChatNotice</span>(<span class="ruby-identifier">usuario</span>, <span class="ruby-identifier">msg</span>)
+                    <span class="ruby-keyword kw">end</span>
+                <span class="ruby-keyword kw">else</span>
+                    <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;RCV_JOINCHN ERR Nome de sala invalido&quot;</span>
+                <span class="ruby-keyword kw">end</span>
+            <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^CMD_INFOCHN( |$)/i</span>
+                <span class="ruby-identifier">sala</span> = <span class="ruby-identifier">usuario</span>.<span class="ruby-identifier">sala</span>
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;RCV_INFOCHN OK #{@salas[sala].nome} #{@salas[sala].descricao}&quot;</span>
+            <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^CMD_WHOCHN( |$)/i</span>
+                <span class="ruby-identifier">sala</span> = <span class="ruby-identifier">usuario</span>.<span class="ruby-identifier">sala</span>
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">write</span> <span class="ruby-value str">&quot;RCV_WHOCHN OK &quot;</span>
+                <span class="ruby-ivar">@salas</span>[<span class="ruby-identifier">sala</span>].<span class="ruby-identifier">nicks</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">umusuario</span><span class="ruby-operator">|</span>
+                    <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">write</span> <span class="ruby-node">&quot;#{umusuario.nick}|&quot;</span>
+                <span class="ruby-keyword kw">end</span>
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span>
+            <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^CMD_VLOG /i</span>
+                <span class="ruby-identifier">sala</span> = <span class="ruby-identifier">usuario</span>.<span class="ruby-identifier">sala</span>
+                <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^CMD_VLOG ([0-9]{1,2})/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+                <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+                    <span class="ruby-identifier">tail</span> = <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>].<span class="ruby-identifier">to_i</span>
+                    <span class="ruby-identifier">log</span> = <span class="ruby-ivar">@salas</span>[<span class="ruby-identifier">sala</span>].<span class="ruby-constant">VerLog</span>(<span class="ruby-identifier">tail</span>)
+                <span class="ruby-keyword kw">else</span>
+                    <span class="ruby-identifier">log</span> = <span class="ruby-ivar">@salas</span>[<span class="ruby-identifier">sala</span>].<span class="ruby-constant">VerLog</span>(<span class="ruby-value">30</span>)
+                <span class="ruby-keyword kw">end</span>
+
+                <span class="ruby-identifier">log</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">linha_log</span><span class="ruby-operator">|</span>
+                    <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;RCV_CHATLOG [LOG] #{linha_log}&quot;</span>
+                <span class="ruby-keyword kw">end</span>
+            <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^CMD_PVT /</span>
+                <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^CMD_PVT ([a-zA-Z0-9]{1,24}) (.+)/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+                <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+                    <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-constant">EnviarPVT</span>(<span class="ruby-identifier">usuario</span>, <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>], <span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>])
+                <span class="ruby-keyword kw">end</span>
+            <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^CMD_WHOAMI( |$)/i</span>
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;RCV_WHOAMI OK #{usuario.id} #{usuario.nick} #{usuario.nome} #{usuario.sala}&quot;</span>
+            <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^CMD_NICK /i</span>
+                <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^CMD_NICK ([a-zA-Z0-9]{1,24})/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+                <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+                    <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pegar_usuario_por_nick</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>])
+                        <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;RCV_NICK ERR Nick já em uso&quot;</span>
+                    <span class="ruby-keyword kw">else</span>
+                        <span class="ruby-identifier">novo_nick</span> = <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>]
+                        <span class="ruby-comment cmt">#@nicks[usuario.id] = novo_nick</span>
+                        <span class="ruby-comment cmt">#@salas[usuario.sala].RemoverMembro(cliente, usuario)</span>
+                        <span class="ruby-comment cmt">#@salas[usuario.sala].AdicionarMembro(cliente, novo_nick)</span>
+
+                        <span class="ruby-identifier">msg</span> = <span class="ruby-node">&quot;#{usuario.nick} trocou de nick para '#{novo_nick}'&quot;</span>
+                        <span class="ruby-constant">ChatNotice</span>(<span class="ruby-identifier">usuario</span>, <span class="ruby-identifier">msg</span>)
+
+                        <span class="ruby-identifier">usuario</span>.<span class="ruby-identifier">nick</span> = <span class="ruby-identifier">novo_nick</span>
+                        <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;RCV_NICK OK&quot;</span>
+                    <span class="ruby-keyword kw">end</span>
+                <span class="ruby-keyword kw">end</span>
+            <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^CMD_CHAT /i</span>
+                <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^CMD_CHAT (.+)/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+                <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+                    <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-constant">Chat</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>], <span class="ruby-identifier">usuario</span>)
+                <span class="ruby-keyword kw">else</span>
+                    <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;ERR_CMD Mensagem de chat inválida&quot;</span>
+                <span class="ruby-keyword kw">end</span>
+            <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^QUIT( |$)/i</span>
+                <span class="ruby-identifier">msg</span> = <span class="ruby-node">&quot;#{usuario.nick} saiu da sala&quot;</span>
+                <span class="ruby-constant">ChatNotice</span>(<span class="ruby-identifier">usuario</span>, <span class="ruby-identifier">msg</span>)
+                <span class="ruby-constant">ClienteDesconectar</span>(<span class="ruby-identifier">usuario</span>.<span class="ruby-identifier">id</span>, <span class="ruby-identifier">cliente</span>)
+            <span class="ruby-keyword kw">else</span>
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;ERR_CMD Comando Invalido&quot;</span>
+            <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

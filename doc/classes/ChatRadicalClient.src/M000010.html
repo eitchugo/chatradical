@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>UserCMD (ChatRadicalClient)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File chatradical-client.rb, line 192</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-constant">UserCMD</span>(<span class="ruby-identifier">linha</span>)
+        <span class="ruby-comment cmt"># Listar salas</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/list( |$)/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">ListarSalas</span>()
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Listar Usuarios da sala atual</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/who( |$)/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">ListarMembros</span>()
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Entrar em uma sala (criar se nao existir)</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/join ([a-zA-Z0-9]{1,24})( (.+))?/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">EntrarSala</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>], <span class="ruby-identifier">match</span>[<span class="ruby-value">3</span>])
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Informações da sala atual</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/info( |$)/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">InfoSala</span>()
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Mudança de nick</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/nick ([a-zA-Z0-9]{1,24})$/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">MudarNick</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>])
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Envio de mensagem privada</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/msg ([a-zA-Z0-9]{1,24}) (.+)/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">EnviarPVT</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>], <span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>])
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Log de conversa da sala atual</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/log( ([0-9]{1,2})|$)/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>]
+                <span class="ruby-constant">VerLog</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>])
+            <span class="ruby-keyword kw">else</span>
+                <span class="ruby-constant">VerLog</span>()
+            <span class="ruby-keyword kw">end</span>
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Sair do chat</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/quit( |$)/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">Desconectar</span>()
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Ajuda</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\/help( |$)/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">CliAjuda</span>()
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Comandos invalidos</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^\//i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">CliErro</span>(<span class="ruby-value str">'Comando inválido!'</span>)
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">1</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Tudo o mais é mensagem de chat</span>
+        <span class="ruby-ivar">@server</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;CMD_CHAT #{linha}&quot;</span>
+        <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

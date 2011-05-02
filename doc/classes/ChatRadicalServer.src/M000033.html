@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>CriaServidor (ChatRadicalServer)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File chatradical-server.rb, line 75</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-constant">CriaServidor</span>(<span class="ruby-identifier">porta</span>)
+        <span class="ruby-keyword kw">begin</span>
+            <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;server&gt; Iniciando servidor na porta #{porta}...&quot;</span>
+            <span class="ruby-identifier">server</span> = <span class="ruby-constant">TCPServer</span>.<span class="ruby-identifier">open</span>(<span class="ruby-identifier">porta</span>)
+            <span class="ruby-identifier">server</span>.<span class="ruby-identifier">setsockopt</span>(<span class="ruby-constant">Socket</span><span class="ruby-operator">::</span><span class="ruby-constant">SOL_SOCKET</span>, <span class="ruby-constant">Socket</span><span class="ruby-operator">::</span><span class="ruby-constant">SO_REUSEADDR</span>, <span class="ruby-value">1</span>)
+            <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;server&gt; Porta aberta.&quot;</span>
+        <span class="ruby-keyword kw">rescue</span>
+            <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;error&gt; Erro ao tentar abrir a porta!&quot;</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-keyword kw">begin</span>
+            <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;server&gt; Criando salas padrões...&quot;</span>
+            [<span class="ruby-value str">&quot;default&quot;</span>, <span class="ruby-value str">&quot;Linux&quot;</span>, <span class="ruby-value str">&quot;Ruby&quot;</span>, <span class="ruby-value str">&quot;FIAP&quot;</span>].<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">nome</span><span class="ruby-operator">|</span>
+                <span class="ruby-constant">NovaSala</span>(<span class="ruby-identifier">nome</span>, <span class="ruby-identifier">nome</span>)
+            <span class="ruby-keyword kw">end</span>
+            <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;server&gt; Salas criadas.&quot;</span>
+        <span class="ruby-keyword kw">rescue</span>
+            <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;error&gt; Erro ao crias as salas padrões&quot;</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-keyword kw">begin</span>
+            <span class="ruby-identifier">loop</span> <span class="ruby-keyword kw">do</span>
+                <span class="ruby-constant">Thread</span>.<span class="ruby-identifier">start</span>(<span class="ruby-identifier">server</span>.<span class="ruby-identifier">accept</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">cliente</span><span class="ruby-operator">|</span>
+                    <span class="ruby-ivar">@connid</span> <span class="ruby-operator">+=</span> <span class="ruby-value">1</span>
+                    <span class="ruby-identifier">connid</span> = <span class="ruby-ivar">@connid</span>
+                    <span class="ruby-identifier">port</span> = <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">peeraddr</span>[<span class="ruby-value">1</span>]
+                    <span class="ruby-identifier">host</span> = <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">peeraddr</span>[<span class="ruby-value">2</span>]
+                    <span class="ruby-identifier">addr</span> = <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">peeraddr</span>[<span class="ruby-value">3</span>]
+
+                    <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;server&gt; Conexão recebida de #{addr}:#{port}&quot;</span>
+
+                    <span class="ruby-keyword kw">begin</span>
+                        <span class="ruby-identifier">loop</span> <span class="ruby-keyword kw">do</span>
+                            <span class="ruby-identifier">linha</span> = <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">readline</span>.<span class="ruby-identifier">chomp</span>
+                            <span class="ruby-constant">ClienteConectar</span>(<span class="ruby-identifier">connid</span>,<span class="ruby-identifier">cliente</span>,<span class="ruby-identifier">linha</span>)
+                        <span class="ruby-keyword kw">end</span>
+                    <span class="ruby-keyword kw">rescue</span>
+                        <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;server&gt; Desconectado: #{addr}:#{port}&quot;</span>
+                    <span class="ruby-keyword kw">ensure</span>
+                        <span class="ruby-ivar">@descriptors</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">cliente</span>)
+                        <span class="ruby-ivar">@salas</span>.<span class="ruby-identifier">each_value</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">sala</span><span class="ruby-operator">|</span>
+                            <span class="ruby-identifier">sala</span>.<span class="ruby-constant">RemoverMembro</span>(<span class="ruby-identifier">cliente</span>, <span class="ruby-ivar">@nicks</span>[<span class="ruby-identifier">connid</span>])
+                        <span class="ruby-keyword kw">end</span>
+                        <span class="ruby-ivar">@nicks</span>.<span class="ruby-identifier">delete</span>(<span class="ruby-identifier">connid</span>)
+                        <span class="ruby-constant">ClienteDesconectar</span>(<span class="ruby-identifier">connid</span>, <span class="ruby-identifier">cliente</span>)
+                    <span class="ruby-keyword kw">end</span>
+
+                <span class="ruby-keyword kw">end</span>
+            <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">rescue</span> <span class="ruby-constant">Interrupt</span>
+           <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;server&gt; Administrador abortou o servidor. Saindo!&quot;</span>
+        <span class="ruby-keyword kw">end</span> 
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

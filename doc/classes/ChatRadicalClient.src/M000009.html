@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>RecebimentoDoServer (ChatRadicalClient)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File chatradical-client.rb, line 102</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-constant">RecebimentoDoServer</span>(<span class="ruby-identifier">linha</span>)
+        <span class="ruby-comment cmt"># Quando mudou de sala</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^RCV_JOINCHN (ERR (.*)|OK ([\w]+))$/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^ERR /</span>
+                <span class="ruby-constant">CliErro</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">1</span>
+            <span class="ruby-keyword kw">else</span>
+                <span class="ruby-constant">CliMudancaSala</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">3</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+            <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Listar todas as salas do servidor</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^RCV_LISTCHN (ERR (.+)|OK (.+))$/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^ERR /</span>
+                <span class="ruby-constant">CliErro</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">1</span>
+            <span class="ruby-keyword kw">else</span>
+                <span class="ruby-constant">CliListaSalas</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">3</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+            <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Lista usuarios da sala atual</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^RCV_WHOCHN (ERR (.+)|OK (.+))$/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^ERR /</span>
+                <span class="ruby-constant">CliErro</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">1</span>
+            <span class="ruby-keyword kw">else</span>
+                <span class="ruby-constant">CliListaUsuariosSala</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">3</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+            <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Informações sobre a sala</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^RCV_INFOCHN (ERR (.+)|OK ([a-zA-Z0-9]{1,24}) (.+))$/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^ERR /</span>
+                <span class="ruby-constant">CliErro</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">1</span>
+            <span class="ruby-keyword kw">else</span>
+                <span class="ruby-constant">CliInformacoesSala</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">3</span>], <span class="ruby-identifier">match</span>[<span class="ruby-value">4</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+            <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Mudança de nick</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^RCV_NICK (ERR (.*)|OK)/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^ERR /</span>
+                <span class="ruby-constant">CliErro</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">1</span>
+            <span class="ruby-keyword kw">else</span>
+                <span class="ruby-constant">CliNick</span>()
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+            <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Mensagem privada </span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^RCV_PVT (ERR (.*)|OK)/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>] <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^ERR /</span>
+                <span class="ruby-constant">CliErro</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">2</span>])
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">1</span>
+            <span class="ruby-keyword kw">else</span>
+                <span class="ruby-constant">CliPvtMsg</span>()
+                <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+            <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Log de mensagens da sala</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^RCV_CHATLOG (.+)/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">CliChatLog</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>])
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+
+        <span class="ruby-comment cmt"># Mensagens de chat</span>
+        <span class="ruby-identifier">match</span> = <span class="ruby-regexp re">/^RCV_CHATMSG (.+)/</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">match</span>
+            <span class="ruby-constant">CliChatMsg</span>(<span class="ruby-identifier">match</span>[<span class="ruby-value">1</span>])
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value">0</span>
+        <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

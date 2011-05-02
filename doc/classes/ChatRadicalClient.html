@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Class: ChatRadicalClient</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+    <div id="classHeader">
+        <table class="header-table">
+        <tr class="top-aligned-row">
+          <td><strong>Class</strong></td>
+          <td class="class-name-in-header">ChatRadicalClient</td>
+        </tr>
+        <tr class="top-aligned-row">
+            <td><strong>In:</strong></td>
+            <td>
+                <a href="../files/chatradical-client_rb.html">
+                chatradical-client.rb
+                </a>
+        <br />
+            </td>
+        </tr>
+
+        <tr class="top-aligned-row">
+            <td><strong>Parent:</strong></td>
+            <td>
+                Object
+            </td>
+        </tr>
+        </table>
+    </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <p>
+Esta classe contém todo o cliente de chat e é a única necessária para
+esta tarefa.
+</p>
+
+    </div>
+
+
+   </div>
+
+    <div id="method-list">
+      <h3 class="section-bar">Methods</h3>
+
+      <div class="name-list">
+      <a href="#M000019">CliAjuda</a>&nbsp;&nbsp;
+      <a href="#M000028">CliChatLog</a>&nbsp;&nbsp;
+      <a href="#M000029">CliChatMsg</a>&nbsp;&nbsp;
+      <a href="#M000021">CliErro</a>&nbsp;&nbsp;
+      <a href="#M000025">CliInformacoesSala</a>&nbsp;&nbsp;
+      <a href="#M000023">CliListaSalas</a>&nbsp;&nbsp;
+      <a href="#M000024">CliListaUsuariosSala</a>&nbsp;&nbsp;
+      <a href="#M000022">CliMudancaSala</a>&nbsp;&nbsp;
+      <a href="#M000026">CliNick</a>&nbsp;&nbsp;
+      <a href="#M000027">CliPvtMsg</a>&nbsp;&nbsp;
+      <a href="#M000020">CliShowMotd</a>&nbsp;&nbsp;
+      <a href="#M000007">Conectar</a>&nbsp;&nbsp;
+      <a href="#M000018">Desconectar</a>&nbsp;&nbsp;
+      <a href="#M000014">EntrarSala</a>&nbsp;&nbsp;
+      <a href="#M000017">EnviarPVT</a>&nbsp;&nbsp;
+      <a href="#M000013">InfoSala</a>&nbsp;&nbsp;
+      <a href="#M000012">ListarMembros</a>&nbsp;&nbsp;
+      <a href="#M000011">ListarSalas</a>&nbsp;&nbsp;
+      <a href="#M000008">Listener</a>&nbsp;&nbsp;
+      <a href="#M000016">MudarNick</a>&nbsp;&nbsp;
+      <a href="#M000009">RecebimentoDoServer</a>&nbsp;&nbsp;
+      <a href="#M000010">UserCMD</a>&nbsp;&nbsp;
+      <a href="#M000015">VerLog</a>&nbsp;&nbsp;
+      <a href="#M000006">new</a>&nbsp;&nbsp;
+      </div>
+    </div>
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+    <div id="methods">
+      <h3 class="section-bar">Public Class methods</h3>
+
+      <div id="method-M000006" class="method-detail">
+        <a name="M000006"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000006.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000006.html');return false;">
+          <span class="method-name">new</span><span class="method-args">(hostname, port)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Tenta conectar-se ao servidor utilizando o hostname e porta. Caso falhe, o
+programa termina.
+</p>
+        </div>
+      </div>
+
+      <h3 class="section-bar">Public Instance methods</h3>
+
+      <div id="method-M000019" class="method-detail">
+        <a name="M000019"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000019.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000019.html');return false;">
+          <span class="method-name">CliAjuda</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra na tela do cliente os comandos que o usuário pode utilizar.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000028" class="method-detail">
+        <a name="M000028"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000028.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000028.html');return false;">
+          <span class="method-name">CliChatLog</span><span class="method-args">(msg)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra o resultado do registro de conversa da sala na tela do cliente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000029" class="method-detail">
+        <a name="M000029"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000029.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000029.html');return false;">
+          <span class="method-name">CliChatMsg</span><span class="method-args">(msg)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra uma mensagem recebida pelo servidor na tela do cliente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000021" class="method-detail">
+        <a name="M000021"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000021.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000021.html');return false;">
+          <span class="method-name">CliErro</span><span class="method-args">(msg)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra um erro na tela do cliente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000025" class="method-detail">
+        <a name="M000025"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000025.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000025.html');return false;">
+          <span class="method-name">CliInformacoesSala</span><span class="method-args">(nome, descricao)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra as informações da sala na tela do cliente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000023" class="method-detail">
+        <a name="M000023"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000023.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000023.html');return false;">
+          <span class="method-name">CliListaSalas</span><span class="method-args">(rcv)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra o resultado da lista de salas na tela do cliente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000024" class="method-detail">
+        <a name="M000024"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000024.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000024.html');return false;">
+          <span class="method-name">CliListaUsuariosSala</span><span class="method-args">(rcv)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra o resultado da lista de usuários da sala na tela do cliente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000022" class="method-detail">
+        <a name="M000022"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000022.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000022.html');return false;">
+          <span class="method-name">CliMudancaSala</span><span class="method-args">(nome)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra o resultado da mudança de sala na tela do cliente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000026" class="method-detail">
+        <a name="M000026"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000026.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000026.html');return false;">
+          <span class="method-name">CliNick</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra o resultado da mudança de nick na tela do cliente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000027" class="method-detail">
+        <a name="M000027"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000027.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000027.html');return false;">
+          <span class="method-name">CliPvtMsg</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra o resultado do envio de mensagem privada na tela do cliente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000020" class="method-detail">
+        <a name="M000020"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000020.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000020.html');return false;">
+          <span class="method-name">CliShowMotd</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mostra na tela do cliente a mensagem de boas vindas (MOTD).
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000007" class="method-detail">
+        <a name="M000007"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000007.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000007.html');return false;">
+          <span class="method-name">Conectar</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Mecanismo de handshake com o servidor para estabelecer uma conexão válida
+no serviço de chat.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000018" class="method-detail">
+        <a name="M000018"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000018.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000018.html');return false;">
+          <span class="method-name">Desconectar</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Manda para o servidor a requisição para finalizar a conexão com o chat.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000014" class="method-detail">
+        <a name="M000014"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000014.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000014.html');return false;">
+          <span class="method-name">EntrarSala</span><span class="method-args">(nome, descricao)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Manda para o servidor a requsição de entrar em uma sala.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000017" class="method-detail">
+        <a name="M000017"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000017.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000017.html');return false;">
+          <span class="method-name">EnviarPVT</span><span class="method-args">(nick, msg)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Manda para o servidor a requisição de uma mensagem privada para um
+usuário.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000013" class="method-detail">
+        <a name="M000013"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000013.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000013.html');return false;">
+          <span class="method-name">InfoSala</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Manda para o servidor a requisição de mostrar informações da sala.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000012" class="method-detail">
+        <a name="M000012"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000012.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000012.html');return false;">
+          <span class="method-name">ListarMembros</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Manda para o servidor a requisição de listar os usuários da sala atual.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000011" class="method-detail">
+        <a name="M000011"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000011.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000011.html');return false;">
+          <span class="method-name">ListarSalas</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Manda para o servidor a requisição de listar as salas disponíveis.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000008" class="method-detail">
+        <a name="M000008"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000008.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000008.html');return false;">
+          <span class="method-name">Listener</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Escuta por comandos do usuário (via entrada padrão/STDIN) ou por
+mensagens do servidor.
+</p>
+<ul>
+<li>Para escutar por comandos do usuário via STDIN, usa-se uma nova
+
+</li>
+</ul>
+<p>
+thread pois o Windows não suporta non-blocking IO para o STDIN.
+</p>
+<ul>
+<li>Usa-se o select() (non-blocking IO) para escutar as mensagens do
+
+</li>
+</ul>
+<p>
+servidor constantemente.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000016" class="method-detail">
+        <a name="M000016"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000016.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000016.html');return false;">
+          <span class="method-name">MudarNick</span><span class="method-args">(nick)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Manda para o servidor a requisição de mudança de apelido (nick).
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000009" class="method-detail">
+        <a name="M000009"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000009.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000009.html');return false;">
+          <span class="method-name">RecebimentoDoServer</span><span class="method-args">(linha)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Recebe as mensagens do servidor e decide o que fazer com elas, chamando
+outros métodos.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000010" class="method-detail">
+        <a name="M000010"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000010.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000010.html');return false;">
+          <span class="method-name">UserCMD</span><span class="method-args">(linha)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+De acordo com que o usuário digita na entrada padrão, chama outros
+métodos que irão lidar com as requisições.
+</p>
+        </div>
+      </div>
+
+      <div id="method-M000015" class="method-detail">
+        <a name="M000015"></a>
+
+        <div class="method-heading">
+          <a href="ChatRadicalClient.src/M000015.html" target="Code" class="method-signature"
+            onclick="popupCode('ChatRadicalClient.src/M000015.html');return false;">
+          <span class="method-name">VerLog</span><span class="method-args">(tail=nil)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+Manda para o servidor a requisição de mostrar o registro de conversa da
+sala.
+</p>
+        </div>
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>

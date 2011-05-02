@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>ClienteConectar (ChatRadicalServer)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File chatradical-server.rb, line 129</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-constant">ClienteConectar</span>(<span class="ruby-identifier">connid</span>, <span class="ruby-identifier">cliente</span>, <span class="ruby-identifier">linha</span>)
+        <span class="ruby-identifier">connmatch</span> = <span class="ruby-regexp re">/^CONN ([a-zA-Z0-9]{1,24}) ([a-zA-Z_-]{1,32})$/i</span>.<span class="ruby-identifier">match</span> <span class="ruby-identifier">linha</span>
+        <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">connmatch</span>
+            <span class="ruby-identifier">nick</span> = <span class="ruby-identifier">connmatch</span>[<span class="ruby-value">1</span>]
+            <span class="ruby-identifier">nome</span> = <span class="ruby-identifier">connmatch</span>[<span class="ruby-value">2</span>]
+
+            <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">pegar_usuario_por_nick</span>(<span class="ruby-identifier">nick</span>)
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;RCV_CONN ERR Nick já em uso! Tente outro&quot;</span>
+            <span class="ruby-keyword kw">else</span>
+                <span class="ruby-identifier">usuario</span> = <span class="ruby-constant">Usuario</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">connid</span>, <span class="ruby-identifier">nick</span>, <span class="ruby-identifier">nome</span>, <span class="ruby-identifier">cliente</span>)
+
+                <span class="ruby-ivar">@nicks</span>[<span class="ruby-identifier">connid</span>] = <span class="ruby-identifier">usuario</span>
+                <span class="ruby-ivar">@descriptors</span>.<span class="ruby-identifier">push</span>(<span class="ruby-identifier">cliente</span>)
+
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;RCV_CONN OK #{connid}&quot;</span>
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-constant">ClienteMotd</span>()
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;RCV_MOTD OK&quot;</span>
+
+                <span class="ruby-ivar">@salas</span>[<span class="ruby-value str">&quot;default&quot;</span>].<span class="ruby-constant">AdicionarMembro</span>(<span class="ruby-identifier">cliente</span>, <span class="ruby-identifier">usuario</span>)
+                <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-identifier">usuario</span>.<span class="ruby-constant">EntrarSala</span>(<span class="ruby-value str">'default'</span>)
+                <span class="ruby-identifier">msg</span> = <span class="ruby-node">&quot;#{usuario.nick} entrou na sala 'default'&quot;</span>
+                <span class="ruby-constant">ChatNotice</span>(<span class="ruby-identifier">usuario</span>, <span class="ruby-identifier">msg</span>)
+
+                <span class="ruby-constant">ClienteComandos</span>(<span class="ruby-identifier">usuario</span>,<span class="ruby-identifier">cliente</span>)
+            <span class="ruby-keyword kw">end</span>
+        <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">linha</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp re">/^QUIT( |$)/i</span>
+            <span class="ruby-constant">ClienteDesconectar</span>(<span class="ruby-identifier">connid</span>, <span class="ruby-identifier">cliente</span>)
+        <span class="ruby-keyword kw">else</span>
+            <span class="ruby-identifier">cliente</span>.<span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;RCV_CONN ERR Sintaxe incorreta&quot;</span>
+        <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+  <title>ClienteMotd (ChatRadicalServer)</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+  <link rel="stylesheet" href="../.././rdoc-style.css" type="text/css" media="screen" />
+</head>
+<body class="standalone-code">
+  <pre><span class="ruby-comment cmt"># File chatradical-server.rb, line 165</span>
+    <span class="ruby-keyword kw">def</span> <span class="ruby-constant">ClienteMotd</span>()
+        <span class="ruby-identifier">motd</span> = <span class="ruby-constant">String</span>.<span class="ruby-identifier">new</span>()
+        <span class="ruby-keyword kw">begin</span>
+            <span class="ruby-constant">File</span>.<span class="ruby-identifier">open</span>(<span class="ruby-value str">'motd.txt'</span>, <span class="ruby-value str">'r'</span>) <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">arquivo</span><span class="ruby-operator">|</span>
+                <span class="ruby-keyword kw">while</span> <span class="ruby-identifier">linha</span> = <span class="ruby-identifier">arquivo</span>.<span class="ruby-identifier">gets</span>
+                    <span class="ruby-identifier">motd</span> = <span class="ruby-identifier">motd</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">linha</span>
+                <span class="ruby-keyword kw">end</span>
+            <span class="ruby-keyword kw">end</span>
+            <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">motd</span>
+        <span class="ruby-keyword kw">rescue</span>
+            <span class="ruby-identifier">puts</span> <span class="ruby-value str">&quot;error&gt; Erro ao ler o arquivo MOTD! Mostrando mensagem meia-boca.&quot;</span>
+            <span class="ruby-keyword kw">return</span> <span class="ruby-value str">&quot;Bem vindo ao ChatRadical!&quot;</span>
+        <span class="ruby-keyword kw">end</span>
+    <span class="ruby-keyword kw">end</span></pre>
+</body>
+</html>
