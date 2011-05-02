@@ -1,11 +1,23 @@
 #!/usr/bin/ruby
+# Este programa faz parte da aula de Sistemas Distribuídos da FIAP,
+# e tem como intuito ser um cliente de um servidor de chat simples.
 #
+# O programa abre um socket de escuta em todas as interfaces, na
+# porta 7000.
+#
+# Author:: Hugo Cisneiros (Eitch) (mailto:hugo.cisneiros@gmail.com)
+# License:: Do What The Fuck You Want To Public License
 require 'socket'
 
+# Responsável por armazenar os usuários que estão
+# conectados (depois do handshake) no servidor de chat. Na classe
+# pode-se encontrar o nick, nome, sala em que se encontra e um
+# descritor com o socket para o envio de mensagens.
 class Usuario
     attr_reader :id, :sala, :descriptor
     attr_accessor :nick, :nome
 
+    # Inicializa o usuário já definindo todos as suas informações.
     def initialize(id, nick, nome, descriptor)
         @id = id
         @nick = nick
@@ -13,6 +25,7 @@ class Usuario
         @descriptor = descriptor
     end
 
+    # Entra em uma sala, avisando ao cliente que foi feito.
     def EntrarSala(nome)
         @sala = nome
         return "RCV_JOINCHN OK #{nome}"
@@ -20,10 +33,14 @@ class Usuario
 
 end
 
+# Responsável por armazenar todas as salas disponíveis no servidor.
+# Pode-se encontrar as informações de nome, descrição e quais os membros
+# (referenciando usuários da classe Usuario).
 class Sala
     attr_reader :nome, :descricao, :membros
     attr_accessor :nicks
 
+    # Inicializa a sala, criando-a com suas informações.
     def initialize(nome, descricao)
         @nome = nome
         @descricao = descricao
@@ -32,21 +49,25 @@ class Sala
         @log = Array.new()
     end
 
+    # Adiciona um membro na sala.
     def AdicionarMembro(membro, nick)
         @membros.push(membro)
         @nicks.push(nick)
         @nicks = @nicks.sort()
     end
 
+    # Remove um membro da sala.
     def RemoverMembro(membro, nick)
         @membros.delete(membro)
         @nicks.delete(nick)
     end
 
+    # Adiciona uma linha no registro de conversa da sala.
     def AdicionarLog(linha)
         @log << linha
     end
 
+    # Retorna as mensagens do registro de conversa da sala.
     def VerLog(tail)
         tamanho = @log.length
         inicio = tamanho - tail
@@ -59,10 +80,13 @@ class Sala
     end
 end
 
+# Contém o servidor de chat em si e a lógica que controla o envio e
+# recebimento do protocolo de chat.
 class ChatRadicalServer
 
     attr_reader :salas, :connid, :nicks
 
+    # Inicializa os registros de conexões, nicks e salas.
     def initialize(porta)
         @descriptors = Array.new()
         @connid = 0
@@ -72,6 +96,8 @@ class ChatRadicalServer
         CriaServidor(porta)
     end
 
+    # Cria o servidor na porta determinada. Cria algumas salas padrões
+    # e define e gerencia threads para cada conexão recebida.
     def CriaServidor(porta)
         begin
             puts "server> Iniciando servidor na porta #{porta}..."
@@ -126,6 +152,7 @@ class ChatRadicalServer
         end 
     end
 
+    # Procedimento de handshake entre o servidor e o cliente.
     def ClienteConectar(connid, cliente, linha)
         connmatch = /^CONN ([a-zA-Z0-9]{1,24}) ([a-zA-Z_-]{1,32})$/i.match linha
         if connmatch
@@ -158,10 +185,12 @@ class ChatRadicalServer
         end
     end
 
+    # Desconecta o cliente do servidor.
     def ClienteDesconectar(connid, cliente)
         cliente.close
     end
 
+    # Lê o arquivo de boas vindas (MOTD) para mostrar ao cliente.
     def ClienteMotd()
         motd = String.new()
         begin
@@ -177,6 +206,8 @@ class ChatRadicalServer
         end
     end
 
+    # Escuta os comandos enviados pelos clientes e de acordo com o protocolo
+    # de chat, chama outros métodos para definir o que fazer.
     def ClienteComandos(usuario,cliente)
         loop do
             linha = cliente.readline.chomp
@@ -278,6 +309,7 @@ class ChatRadicalServer
         end
     end
 
+    # Obtém uma classe usuário através do seu nick
     def pegar_usuario_por_nick(nick)
         @nicks.each_value do |usuario|
             if usuario.nick == nick
@@ -288,6 +320,7 @@ class ChatRadicalServer
         return false
     end
 
+    # Obtém a descrição de uma sala através do seu nome
     def pegar_descricao_de_sala_por_nome(nome)
         @salas.each_value do |sala|
             if (sala.nome == nome)
@@ -298,6 +331,7 @@ class ChatRadicalServer
         return false
     end
 
+    # Cria uma nova sala
     def NovaSala(nome, descricao=nil)
         unless @salas[nome]
             if descricao == nil
@@ -312,6 +346,7 @@ class ChatRadicalServer
         return true
     end
 
+    # Lista as salas do servidor
     def ListarSalas()
         lista = Array.new()
         @salas.each_value do |sala|
@@ -323,6 +358,7 @@ class ChatRadicalServer
         return lista.sort
     end
 
+    # Gera uma mensagem de chat e manda para os clientes da sala
     def Chat(linha, usuario)
         sala = @salas[usuario.sala]
         msg = Time.now.strftime("[%H:%M:%S] ") + "<#{usuario.nick}> #{linha}"
@@ -337,6 +373,7 @@ class ChatRadicalServer
         return "RCV_CHAT OK"
     end
 
+    # Gera uma mensagem de notificação e manda para os clientes da sala
     def ChatNotice(usuario, msg)
         msg = Time.now.strftime("[%H:%M:%S] ") + "*** #{msg}"
 
@@ -351,6 +388,7 @@ class ChatRadicalServer
         return "RCV_CHAT OK"
     end
 
+    # Envia uma mensagem privada para um usuário
     def EnviarPVT(usuario, destino, msg)
          destino = pegar_usuario_por_nick(destino)
 
